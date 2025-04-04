@@ -1,4 +1,4 @@
-package com.hamitmizrak.iofiles;
+package com.neslihanatalay.iofiles;
 
 public interface IFileHandlerInterface {
 
