@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="com.neslihanatalay.ibb_ecodation_javafx.controller.NotebookController">
+
+    <!-- ÜST: Arama ve Filtre 	-->
+    <top>
+        <HBox spacing="10" padding="10">
+            <Label text="Ara (Not Başlığı):" />
+            <TextField fx:id="searchField" promptText="Not giriniz..." />
+            <Button text="Filtreyi Temizle" onAction="#clearFilters" />
+        </HBox>
+    </top>
+
+    <!-- ORTA: Tablo -->
+    <center>
+        <TableView fx:id=notebookTable">
+            <columns>
+                <TableColumn fx:id="idColumn" text="ID" />
+                <TableColumn fx:id="titleColumn" text="Başlık" />
+                <TableColumn fx:id="contentColumn" text="İçerik" />
+				        <TableColumn fx:id="createdDateColumn" text="Oluşturulma Tarihi" />
+                <TableColumn fx:id="updatedDateColumn" text="Güncellenme Tarihi" />
+                <TableColumn fx:id="categoryColumn" text="Kategori" />
+                <TableColumn fx:id="pinnedColumn" text="Sabitlenmiş mi?" />
+                <!-- <TableColumn fx:id="userNameColumn" text="Ekleyen Kullanıcı" /> -->
+            </columns>
+        </TableView>
+    </center>
+
+    <!-- ALT: Butonlar -->
+    <bottom>
+        <HBox spacing="10" padding="10" alignment="CENTER_RIGHT">
+            <Button text="Not Yaz" onAction="#addNotebook" />
+            <Button text="Not Güncelle" onAction="#updateNotebook" />
+            <Button text="Not Sil" onAction="#deleteNotebook" />
+        </HBox>
+    </bottom>
+
+</BorderPane>
