@@ -16,7 +16,7 @@
                 <Button text="🔁 Geri Yükle" onAction="#refreshTable" style="-fx-background-color: #f39c12; -fx-text-fill: white; -fx-background-radius: 8;" />
 
                 <Pane HBox.hgrow="ALWAYS" />
-                <Button text="🪪 Not Defteri" onAction="#notebook" style="-fx-background-color: #139c12; -fx-text-fill: white; -fx-background-radius: 8;" />
+                <!--<Button text="🪪 Not Defteri" onAction="#notebook" style="-fx-background-color: #139c12; -fx-text-fill: white; -fx-background-radius: 8;" />-->
                 <Pane HBox.hgrow="ALWAYS" />
                 <Button text="👤 Profil" onAction="#showProfile" style="-fx-background-color: #8e44ad; -fx-text-fill: white; -fx-background-radius: 8;" />
 
@@ -41,10 +41,6 @@
                     </Menu>
                 <Menu text="Diğer İşlemler">
                     <MenuItem text="Hesap Makinesi" onAction="#openCalculator" />
-                    <MenuItem text="Not Defteri" onAction="#notebook" />
-                    <MenuItem text="Not Defteri - Not Yaz" onAction="#addNotebook" />
-					<MenuItem text="Not Defteri - Not Güncelle" onAction="#updateNotebook" />
-					<MenuItem text="Not Defteri - Not Sil" onAction="#deleteNotebook" />
                 </Menu>
                     <Menu text="Yardım">
                         <MenuItem text="Hakkında" onAction="#showAbout" />
