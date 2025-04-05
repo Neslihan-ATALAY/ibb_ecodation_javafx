@@ -42,6 +42,9 @@
                 <Menu text="Diğer İşlemler">
                     <MenuItem text="Hesap Makinesi" onAction="#openCalculator" />
                     <MenuItem text="Not Defteri" onAction="#notebook" />
+                    <MenuItem text="Not Defteri - Not Yaz" onAction="#addNotebook" />
+					<MenuItem text="Not Defteri - Not Güncelle" onAction="#updateNotebook" />
+					<MenuItem text="Not Defteri - Not Sil" onAction="#deleteNotebook" />
                 </Menu>
                     <Menu text="Yardım">
                         <MenuItem text="Hakkında" onAction="#showAbout" />
