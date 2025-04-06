@@ -32,7 +32,7 @@ public class NotebookController {
     @FXML private TableColumn<NotebookDTO, Boolean> pinnedColumn;
     @FXML private TextField searchField;
 
-	@FXML
+    @FXML
     private void showAlert(String title, String message, Alert.AlertType type) {
         Alert alert = new Alert(type);
         alert.setTitle(title);
@@ -61,8 +61,8 @@ public class NotebookController {
         refreshTable();
     }
 	
-	@FXML
-	private void applyFilter() {
+    @FXML
+    private void applyFilter() {
         String keyword = searchField.getText().trim().toLowerCase();
         Optional<List<NotebookDTO>> all = notebookDAO.list();
         List<NotebookDTO> filtered = all.orElse(List.of()).stream()
@@ -77,7 +77,7 @@ public class NotebookController {
         refreshTable();
     }
 
-	@FXML
+    @FXML
     public void refreshTable() {
         Optional<List<NotebookDTO>> list = NotebookDAO.list();
         list.ifPresent(data -> notebookTable.setItems(FXCollections.observableArrayList(data)));
@@ -93,7 +93,7 @@ public class NotebookController {
         }
     }
 	
-	@FXML
+    @FXML
     private void updateNotebook(ActionEvent event) {
         NotebookDTO selected = notebookTable.getSelectionModel().getSelectedItem();
         if (selected == null) {
@@ -108,7 +108,7 @@ public class NotebookController {
         }
     }
 
-	@FXML
+    @FXML
     private void deleteNotebook(ActionEvent event) {
         NotebookDTO selected = notebookTable.getSelectionModel().getSelectedItem();
         if (selected == null) {
@@ -125,7 +125,7 @@ public class NotebookController {
         }
     }
 
-	@FXML
+    @FXML
     private NotebookDTO showNotebookForm(NotebookDTO existing) {
         Dialog<NotebookDTO> dialog = new Dialog<>();
         dialog.setTitle(existing == null ? "Yeni Not Ekle" : "Not Güncelle");
