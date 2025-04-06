@@ -39,12 +39,12 @@
                         <MenuItem text="KDV Güncelle" onAction="#updateKdv" />
                         <MenuItem text="KDV Sil" onAction="#deleteKdv" />
                     </Menu>
-                <Menu text="Diğer İşlemler">
-                    <MenuItem text="Hesap Makinesi" onAction="#openCalculator" />
-                </Menu>
+                    <Menu text="Diğer İşlemler">
+                        <MenuItem text="Hesap Makinesi" onAction="#openCalculator" />
+                        <MenuItem text="Not Defteri" onAction="#notebook" />
+                    </Menu>
                     <Menu text="Yardım">
                         <MenuItem text="Hakkında" onAction="#showAbout" />
-                        <MenuItem text="Not Defteri" onAction="#notebook" />
                     </Menu>
                 </menus>
             </MenuBar>
