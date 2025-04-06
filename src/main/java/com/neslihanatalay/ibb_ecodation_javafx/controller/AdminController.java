@@ -1006,7 +1006,7 @@ public class AdminController {
         } catch (Exception e) {
             System.out.println(SpecialColor.RED + "Notlar Sayfasına yönlendirme başarısız" + SpecialColor.RESET);
             e.printStackTrace();
-            showAlert("Hata", "Login ekranı yüklenemedi", Alert.AlertType.ERROR);
+            showAlert("Hata", "Notlar ekranı yüklenemedi", Alert.AlertType.ERROR);
         }
     }
 }
