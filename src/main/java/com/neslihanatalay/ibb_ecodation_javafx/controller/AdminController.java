@@ -56,10 +56,12 @@ public class AdminController {
 
     private UserDAO userDAO;
     private KdvDAO kdvDAO;
+    private NotebookDAO notebookDAO;
 
     public AdminController() {
         userDAO = new UserDAO();
         kdvDAO = new KdvDAO();
+	notebookDAO = new NotebookDAO();
     }
 
     @FXML private TableView<UserDTO> userTable;
@@ -991,13 +993,8 @@ public class AdminController {
     }
 
     @FXML
-    private void restoreData(ActionEvent event) {
-        // Daha önce alınmış bir yedek dosyadan veri geri yüklenecek
-    }
-
-    @FXML
     private void notebook(ActionEvent event) {
-        // Daha önce alınmış bir yedek dosyadan veri geri yüklenecek
+         notebookDAO.notebook();
     }
 
 }
