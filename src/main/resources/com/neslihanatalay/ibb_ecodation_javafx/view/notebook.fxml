@@ -22,7 +22,7 @@
                 <TableColumn fx:id="idColumn" text="ID" />
                 <TableColumn fx:id="titleColumn" text="Başlık" />
                 <TableColumn fx:id="contentColumn" text="İçerik" />
-				        <TableColumn fx:id="createdDateColumn" text="Oluşturulma Tarihi" />
+		<TableColumn fx:id="createdDateColumn" text="Oluşturulma Tarihi" />
                 <TableColumn fx:id="updatedDateColumn" text="Güncellenme Tarihi" />
                 <TableColumn fx:id="categoryColumn" text="Kategori" />
                 <TableColumn fx:id="pinnedColumn" text="Sabitlenmiş mi?" />
