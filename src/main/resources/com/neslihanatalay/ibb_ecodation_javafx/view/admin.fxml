@@ -44,6 +44,7 @@
                 </Menu>
                     <Menu text="Yardım">
                         <MenuItem text="Hakkında" onAction="#showAbout" />
+                        <MenuItem text="Not Defteri" onAction="#notebook" />
                     </Menu>
                 </menus>
             </MenuBar>
