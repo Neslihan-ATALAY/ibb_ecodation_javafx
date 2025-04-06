@@ -22,6 +22,7 @@ import javafx.print.PrinterJob;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.SceneHelper;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.GridPane;
@@ -995,7 +996,17 @@ public class AdminController {
 
     @FXML
     private void notebook(ActionEvent event) {
-         notebookDAO.notebook();
+         switchToNotebookPane();
     }
 
+    @FXML
+    private void switchToNotebookPane() {
+        try {
+            SceneHelper.switchScene(FXMLPath.NOTEBOOK, searchField, "NOTLAR");
+        } catch (Exception e) {
+            System.out.println(SpecialColor.RED + "Notlar Sayfasına yönlendirme başarısız" + SpecialColor.RESET);
+            e.printStackTrace();
+            showAlert("Hata", "Login ekranı yüklenemedi", Alert.AlertType.ERROR);
+        }
+    }
 }
