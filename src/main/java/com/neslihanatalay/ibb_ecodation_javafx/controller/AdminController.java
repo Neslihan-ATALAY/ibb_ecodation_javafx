@@ -2,6 +2,7 @@ package com.neslihanatalay.ibb_ecodation_javafx.controller;
 
 import com.neslihanatalay.ibb_ecodation_javafx.dao.KdvDAO;
 import com.neslihanatalay.ibb_ecodation_javafx.dao.UserDAO;
+import com.neslihanatalay.ibb_ecodation_javafx.dao.NotebookDAO;
 import com.neslihanatalay.ibb_ecodation_javafx.dto.KdvDTO;
 import com.neslihanatalay.ibb_ecodation_javafx.dto.UserDTO;
 import com.neslihanatalay.ibb_ecodation_javafx.utils.ERole;
