@@ -33,12 +33,14 @@ public class RegisterController {
     private TextField passwordField;
     @FXML
     private TextField emailField;
-    
-    private Integer LoginUserIdLabelField = 0;
+    @FXML
+    private LabelField LoginUserIdLabelField;
 	
     @FXML
     public void initialize() {
-	LoginUserIdLabelField = Integer.valueOf(Request["LoginUserIdLabelField"]);
+		//LoginUserIdLabelField = Integer.valueOf(Request["LoginUserIdLabelField"]);
+		// GİRİŞ YAPAN KULLANICININ ID NUMARASI LoginUserIdLabelField INTEGER DEĞİŞKENE KAYDEDİLİR
+		LoginUserIdLabelField.setText(Integer.valueOf(LoginUserIdLabelField.getText()));
     }
 
     private void showAlert(String title, String message, Alert.AlertType type) {
@@ -81,7 +83,7 @@ public class RegisterController {
                 .password(password)
                 .email(email)
                 .role(ERole.USER)
-		.count(0)
+				.count(0)
                 .build();
 
         Optional<UserDTO> createdUser = userDAO.create(userDTO);
@@ -94,13 +96,13 @@ public class RegisterController {
     }
 
     private UserDTO showProfileForm(UserDTO existing) {
-	Dialog<UserDTO> dialog = new Dialog<>();
+		Dialog<UserDTO> dialog = new Dialog<>();
         dialog.setTitle(existing == null ? "Yeni Kullanıcı Ekle" : "Kullanıcı Güncelle");
 
         TextField usernameField = new TextField();
         TextField emailField = new TextField();
         PasswordField passwordField = new PasswordField();
-	PasswordField passwordAgainField = new PasswordField();
+		PasswordField passwordAgainField = new PasswordField();
         ComboBox<String> roleCombo = new ComboBox<>();
         roleCombo.getItems().addAll(ERole.values());
         roleCombo.setValue(ERole.USER);
@@ -109,7 +111,7 @@ public class RegisterController {
             usernameField.setText(String.valueOf(existing.getUsername()));
             emailField.setText(String.valueOf(existing.getEmail()));
             passwordField.setText(existing.getPassword());
-	    passwordAgainField.setText(existing.getPassword());
+			passwordAgainField.setText(existing.getPassword());
             roleCombo.setValue(existing.getERole());
         }
 
@@ -118,7 +120,7 @@ public class RegisterController {
         grid.addRow(0, new Label("Kullanıcı Ad:"), usernameField);
         grid.addRow(1, new Label("Email:"), emailField);
         grid.addRow(2, new Label("Yeni Şifre:"), passwordField);
-	grid.addRow(3, new Label("Yeni Şifre Tekrar:"), passwordAgainField);
+		grid.addRow(3, new Label("Yeni Şifre Tekrar:"), passwordAgainField);
         grid.addRow(4, new Label("Kullanıcı Rol:"), roleCombo);
 
         dialog.getDialogPane().setContent(grid);
@@ -127,19 +129,20 @@ public class RegisterController {
         dialog.setResultConverter(btn -> {
             if (btn == ButtonType.OK) {
                 try {
-		    if (passwordField.equals(passwordAgainField)) {
-			return UserDTO.builder()
-                            .username(String.valueOf(usernameField.getText()))
-                            .email(String.valueOf(emailField.getText()))
-			    ///////////////////
-                            .password(passwordField.getText())
-			    .role(ERole.fromString(String.valueOf(roleCombo.getValue())))
-			    .count(existing.getCount())
+					if (passwordField.equals(passwordAgainField)) {
+						return UserDTO.builder()
+                            .username(String.valueOf(usernameField.getText().trim()))
+                            .email(String.valueOf(emailField.getText().trim()))
+                            .password(passwordField.getText().trim().isEmpty()
+                                    ? existingUser.getPassword()
+                                    : passwordField.getText().trim())
+							.role(ERole.fromString(String.valueOf(roleCombo.getValue())))
+							.count(existing.getCount())
                             .build();
-		    } else {
-			showAlert("Uyarı", "Yeni Şifre ve Yeni Şifre Tekrar alanlarını lütfen aynı doldurunuz!", Alert.AlertType.WARNING);
-			return;
-		    }
+					} else {
+						showAlert("Uyarı", "Yeni Şifre ve Yeni Şifre Tekrar alanlarını lütfen aynı doldurunuz!", Alert.AlertType.WARNING);
+						return;
+					}
                 } catch (Exception e) {
                     showAlert("Hata", "Geçersiz veri!", Alert.AlertType.ERROR);
                 }
@@ -153,73 +156,73 @@ public class RegisterController {
 	
     @FXML
     private void updateProfile() {
-	if(LoginUserIdLabelField != 0)
-	    Integer userId = LoginUserIdLabelField;
-	    UserDTO selected = userDAO.findById(userId);
-	    if (selected == null) {
-		showAlert("Uyarı", "Lütfen sisteme tekrar giriş yapınız.", Alert.AlertType.WARNING);
-		return;
-	    }
-	    UserDTO updated = showProfileForm(selected);
-	    if (updated != null && updated.isValid()) {
-	        userDAO.update(selected.getId(), updated);
-		//showProfile();
-		showAlert("Başarılı", "Kullanıcı profil kaydı güncellendi.", Alert.AlertType.INFORMATION);
-	    }
-	}
+		if(Integer.valueOf(LoginUserIdLabelField.getText()) != 0)
+			Integer userId = Integer.valueOf(LoginUserIdLabelField.getText());
+			UserDTO selected = userDAO.findById(userId);
+			if (selected == null) {
+				showAlert("Uyarı", "Lütfen sisteme tekrar giriş yapınız.", Alert.AlertType.WARNING);
+				return;
+			}
+			UserDTO updated = showProfileForm(selected);
+			if (updated != null && updated.isValid()) {
+				userDAO.update(selected.getId(), updated);
+				//showProfile();
+				showAlert("Başarılı", "Kullanıcı profil kaydı güncellendi.", Alert.AlertType.INFORMATION);
+			}
+		}
     }
 	
     @FXML
     private void showProfile() {
         //ShowProfileDialog dialog = new ShowProfileDialog();
         //Optional<UserDTO> result = dialog.showAndWait();
-	private final LabelField usernameField = new LabelField();
-	private final LabelField emailField = new LabelField();
-	private final LabelField passwordField = new LabelField();
-	private final LabelField roleField = new LabelField();
-	private final LabelField countField = new LabelField();
-	if(LoginUserIdLabelField != 0) {
-	    Integer userId = LoginUserIdLabelField;
-	    Dialog<UserDTO> dialog = new Dialog<>();
-	    dialog.setTitle("Kullanıcı Profili");
-	    dialog.setHeaderText("Kullanıcı Profil Bilgileri");			
-	    Optional<UserDTO> optionalUser = userDAO.findById(userId);
-	    if (optionalUser.isPresent()) {
-		usernameField.setText(String.valueOf(optionalUser.getUsername()));
-		emailField.setText(String.valueOf(optionalUser.getEmail()));
-		passwordField.setText(String.valueOf(optionalUser.getPassword()));
-		roleField.setText(String.valueOf(optionalUser.getRole()));
-		countField.setText(String.valueOf(optionalUser.getCount() + 1));
-	    }
-	    GridPane grid = new GridPane();
-	    grid.setHgap(10); grid.setVgap(10);
-	    grid.addRow(0, new Label("Kullanıcı Ad:"), usernameField);
-	    grid.addRow(1 new Label("Kullanıcı Email:"), emailField);
-	    grid.addRow(2, new Label("Kullanıcı Rol:"), roleField);
-	    grid.addRow(3, new Label("Kullanıcı Profili Görüntülenme Sayısı:"), countField);
-	    dialog.getDialogPane().setContent(grid);
-	    dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK);
-	    dialog.setResultConverter(dialogButton -> {
-	    	if (dialogButton == ButtonType.OK) {
-		    try {
-			Optional<UserDTO> updatedUser = UserDTO.builder()
+		private final LabelField usernameField = new LabelField();
+		private final LabelField emailField = new LabelField();
+		private final LabelField passwordField = new LabelField();
+		private final LabelField roleField = new LabelField();
+		private final LabelField countField = new LabelField();
+		if(Integer.valueOf(LoginUserIdLabelField.getText()) != 0)
+			Integer userId = Integer.valueOf(LoginUserIdLabelField.getText());
+			Dialog<UserDTO> dialog = new Dialog<>();
+			dialog.setTitle("Kullanıcı Profili");
+			dialog.setHeaderText("Kullanıcı Profil Bilgileri");			
+			Optional<UserDTO> optionalUser = userDAO.findById(userId);
+			if (optionalUser.isPresent()) {
+				usernameField.setText(String.valueOf(optionalUser.getUsername()));
+				emailField.setText(String.valueOf(optionalUser.getEmail()));
+				passwordField.setText(String.valueOf(optionalUser.getPassword()));
+				roleField.setText(String.valueOf(optionalUser.getRole()));
+				countField.setText(String.valueOf(optionalUser.getCount() + 1));
+			}
+			GridPane grid = new GridPane();
+			grid.setHgap(10); grid.setVgap(10);
+			grid.addRow(0, new Label("Kullanıcı Ad:"), usernameField);
+			grid.addRow(1 new Label("Kullanıcı Email:"), emailField);
+			grid.addRow(2, new Label("Kullanıcı Rol:"), roleField);
+			grid.addRow(3, new Label("Kullanıcı Profili Görüntülenme Sayısı:"), countField);
+			dialog.getDialogPane().setContent(grid);
+			dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK);
+			dialog.setResultConverter(dialogButton -> {
+				if (dialogButton == ButtonType.OK) {
+					try {
+						Optional<UserDTO> updatedUser = UserDTO.builder()
                             .username(String.valueOf(usernameField.getText()))
                             .email(String.valueOf(emailField.getText()))
-			    /////////////////////////////
+							/////////////////////////////
                             .password(String.valueOf(passwordField.getText()))
-			    .role(ERole.fromString(String.valueOf(roleCombo.getValue())))
-			    .count(Integer.valueOf(countField.getText()))
+							.role(ERole.fromString(String.valueOf(roleCombo.getValue())))
+							.count(Integer.valueOf(countField.getText()))
                             .build();
-			if (updatedUser != null && updatedUser.isValid()) {
-			    userDAO.update(optionalUser.getId(), updatedUser);
-			    showAlert("Bilgi", "Kullanıcı profili görüntülendi.", Alert.AlertType.INFORMATION);
-			    //switchToUserHomePane();
-			}
+						if (updatedUser != null && updatedUser.isValid()) {
+							userDAO.update(optionalUser.getId(), updatedUser);
+							showAlert("Bilgi", "Kullanıcı profili görüntülendi.", Alert.AlertType.INFORMATION);
+							//switchToUserHomePane();
+						}
                     } catch (Exception e) {
                         showAlert("Hata", "Geçersiz veri!", Alert.AlertType.ERROR);
                     }
-		}
-	    });
+				}
+			});
     	}
     }
 
