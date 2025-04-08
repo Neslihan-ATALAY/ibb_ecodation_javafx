@@ -23,15 +23,15 @@ public class NotebookDAO implements IDaoImplements<NotebookDTO>, ILogin<Notebook
 
     @Override
     public Optional<NotebookDTO> create(NotebookDTO notebookDTO) {
-        String sql = "INSERT INTO notebooktable (title, content, createdDate, updatedDate, category, pinned) VALUES (?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO notebooktable (title, content, createdDate, updatedDate, category, pinned, userId) VALUES (?, ?, ?, ?, ?, ?, ?)";
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS)) {
             preparedStatement.setString(1, notebookDTO.getTitle());
             preparedStatement.setString(2, notebookDTO.getContent());
             preparedStatement.setDate(3, Date.valueOf(notebookDTO.getCreatedDate()));
             preparedStatement.setDate(4, Date.valueOf(notebookDTO.getUpdatedDate()));
-			preparedStatement.setString(5, notebookDTO.getCategory().name());
-			preparedStatement.setBoolean(6, notebookDTO.getPinned());
-			//preparedStatement.setInteger(7, notebookDTO.getUserDTO().getId());
+	    preparedStatement.setString(5, notebookDTO.getCategory().name());
+	    preparedStatement.setBoolean(6, notebookDTO.getPinned());
+	    preparedStatement.setInteger(7, notebookDTO.getUserId());
             int affectedRows = preparedStatement.executeUpdate();
 
             if (affectedRows > 0) {
@@ -74,16 +74,16 @@ public class NotebookDAO implements IDaoImplements<NotebookDTO>, ILogin<Notebook
     public Optional<NotebookDTO> update(int id, NotebookDTO notebookDTO) {
         Optional<NotebookDTO> optionalUpdate = findById(id);
         if (optionalUpdate.isPresent()) {
-            String sql = "UPDATE notebooktable SET title=?, content=?, createdDate=?, updatedDate=?, category=?, pinned=? WHERE id=?";
+            String sql = "UPDATE notebooktable SET title=?, content=?, createdDate=?, updatedDate=?, category=?, pinned=?, userId=? WHERE id=?";
             try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
                 preparedStatement.setString(1, notebookDTO.getTitle());
                 preparedStatement.setString(2, notebookDTO.getContent());
                 preparedStatement.setDate(3, Date.valueOf(notebookDTO.getCreatedDate()));
                 preparedStatement.setDate(4, Date.valueOf(notebookDTO.getUpdatedDate()));
-				preparedStatement.setString(5, notebookDTO.getCategory().name());
-				preparedStatement.setBoolean(6, notebookDTO.getPinned());
-				//preparedStatement.setInteger(7, notebookDTO.getUserDTO().getId());
-                preparedStatement.setInt(7, id);
+		preparedStatement.setString(5, notebookDTO.getCategory().name());
+		preparedStatement.setBoolean(6, notebookDTO.getPinned());
+		preparedStatement.setInteger(7, notebookDTO.getUserId());
+                preparedStatement.setInt(8, id);
 
                 int affectedRows = preparedStatement.executeUpdate();
                 if (affectedRows > 0) {
@@ -122,10 +122,10 @@ public class NotebookDAO implements IDaoImplements<NotebookDTO>, ILogin<Notebook
                 .username(resultSet.getString("title"))
                 .password(resultSet.getString("content"))
                 .createdDate(resultSet.getDate("createdDate").toLocalDate())
-				.updatedDate(resultSet.getDate("updatedDate").toLocalDate())
+		.updatedDate(resultSet.getDate("updatedDate").toLocalDate())
                 .category(ECategory.fromString(resultSet.getString("category")))
-				.pinned(resultSet.getBoolean("pinned"))
-				//.userDTO(resultSet.getUserDTO("userDTO"))
+		.pinned(resultSet.getBoolean("pinned"))
+		.userId(resultSet.getInteger("userId"))
                 .build();
     }
 
