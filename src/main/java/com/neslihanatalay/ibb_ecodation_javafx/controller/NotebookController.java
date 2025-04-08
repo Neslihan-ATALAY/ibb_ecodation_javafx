@@ -36,7 +36,7 @@ public class NotebookController {
     @FXML private TableColumn<NotebookDTO, String> usernameColumn;
     @FXML private TextField searchField;
 	
-    @FXML private Integer LoginUserIdLabelField;
+    @FXML private LabelField LoginUserIdLabelField;
 
     @FXML
     private void showAlert(String title, String message, Alert.AlertType type) {
@@ -163,6 +163,7 @@ public class NotebookController {
 			} else {
 				usernameField.setValue("");
 			}
+			LoginUserIdLabelField.setText(Integer.valueOf(LoginUserIdLabelField.getText()));
         }
 
         GridPane grid = new GridPane();
@@ -189,7 +190,7 @@ public class NotebookController {
                             .category(ECategory.valueOf(categoryComboBox.getValue().name()))
                             //.category(categoryField.getValue())
                             .pinned(Boolean.parseBoolean(pinnedField.getValue()))
-							.userId(existing.getUserId())
+							.userId((existing != null) ? (existing.getValue()) : (Integer.valueOf(LoginUserIdLabelField.getText())))
                             .build();
                 } catch (Exception e) {
                     showAlert("Hata", "Geçersiz veri!", Alert.AlertType.ERROR);
@@ -321,4 +322,3 @@ public class NotebookController {
     }
      */
 }
-
