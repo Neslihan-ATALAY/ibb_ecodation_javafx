@@ -15,6 +15,8 @@ import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.stage.Stage;
+import org.apache.commons.*
+import org.apache.commons.httpclient.*;
 
 import java.util.Optional;
 
@@ -31,6 +33,13 @@ public class RegisterController {
     private TextField passwordField;
     @FXML
     private TextField emailField;
+    
+	private Integer LoginUserIdLabelField = 0;
+	
+	@FXML
+    public void initialize() {
+		LoginUserIdLabelField = Integer.valueOf(Request["LoginUserIdLabelField"]);
+	}
 
     private void showAlert(String title, String message, Alert.AlertType type) {
         Alert alert = new Alert(type);
@@ -82,6 +91,115 @@ public class RegisterController {
             showAlert("Hata", "Kayıt başarısız oldu", Alert.AlertType.ERROR);
         }
     }
+	
+	private UserDTO showProfileForm(UserDTO existing) {
+		Dialog<UserDTO> dialog = new Dialog<>();
+        dialog.setTitle(existing == null ? "Yeni Kullanıcı Ekle" : "Kullanıcı Güncelle");
+
+        TextField usernameField = new TextField();
+        TextField emailField = new TextField();
+        PasswordField passwordField = new PasswordField();
+		PasswordField passwordAgainField = new PasswordField();
+        ComboBox<String> roleCombo = new ComboBox<>();
+        roleCombo.getItems().addAll(ERole.values());
+        roleCombo.setValue(ERole.USER);
+
+        if (existing != null) {
+            usernameField.setText(String.valueOf(existing.getUsername()));
+            emailField.setText(String.valueOf(existing.getEmail()));
+            passwordField.setText(existing.getPassword());
+			passwordAgainField.setText(existing.getPassword());
+            roleCombo.setValue(existing.getERole());
+        }
+
+        GridPane grid = new GridPane();
+        grid.setHgap(10); grid.setVgap(10);
+        grid.addRow(0, new Label("Kullanıcı Ad:"), usernameField);
+        grid.addRow(1, new Label("Email:"), emailField);
+        grid.addRow(2, new Label("Yeni Şifre:"), passwordField);
+		grid.addRow(3, new Label("Yeni Şifre Tekrar:"), passwordAgainField);
+        grid.addRow(4, new Label("Kullanıcı Rol:"), roleCombo);
+
+        dialog.getDialogPane().setContent(grid);
+        dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+
+        dialog.setResultConverter(btn -> {
+            if (btn == ButtonType.OK) {
+                try {
+					if (passwordField.equals(passwordAgainField)) {
+						return UserDTO.builder()
+                            .username(String.valueOf(usernameField.getText()))
+                            .email(String.valueOf(emailField.getText()))
+							///////////////////
+                            .password(passwordField.getText())
+							.role(ERole.fromString(String.valueOf(roleCombo.getValue())))
+                            .build();
+					} else {
+						showAlert("Uyarı", "Yeni Şifre ve Yeni Şifre Tekrar alanlarını lütfen aynı doldurunuz!", Alert.AlertType.WARNING);
+						return;
+					}
+                } catch (Exception e) {
+                    showAlert("Hata", "Geçersiz veri!", Alert.AlertType.ERROR);
+                }
+            }
+            return null;
+        });
+
+        Optional<UserDTO> result = dialog.showAndWait();
+        return result.orElse(null);
+	}
+	
+	@FXML
+    private void updateProfile() {
+		if(LoginUserIdLabelField != 0)
+			Integer userId = LoginUserIdLabelField;
+			UserDTO selected = userDAO.findById(userId);
+			if (selected == null) {
+				showAlert("Uyarı", "Güncellenecek bir kayıt seçin.", Alert.AlertType.WARNING);
+				return;
+			}
+			UserDTO updated = showProfileForm(selected);
+			if (updated != null && updated.isValid()) {
+				userDAO.update(selected.getId(), updated);
+				refreshTable();
+				showAlert("Başarılı", "KDV kaydı güncellendi.", Alert.AlertType.INFORMATION);
+			}
+		}
+    }
+	
+	@FXML
+    private void showProfile() {
+        //ShowProfileDialog dialog = new ShowProfileDialog();
+        //Optional<UserDTO> result = dialog.showAndWait();
+		private final LabelField usernameField = new LabelField();
+		private final LabelField emailField = new LabelField();
+		private final LabelField roleField = new LabelField();
+		if(LoginUserIdLabelField != 0) {
+			Integer userId = LoginUserIdLabelField;
+			Dialog<UserDTO> dialog = new Dialog<>();
+			dialog.setTitle("Kullanıcı Profili");
+			dialog.setHeaderText("Kullanıcı Profil Bilgileri");			
+			Optional<UserDTO> optionalUser = userDAO.findById(userId);
+			if (optionalUser.isPresent()) {
+				usernameField.setText(String.valueOf(optionalUser.getUsername()));
+				emailField.setText(String.valueOf(optionalUser.getEmail()));
+				roleField.setText(String.valueOf(optionalUser.getRole()));
+			}
+			GridPane grid = new GridPane();
+			grid.setHgap(10); grid.setVgap(10);
+			grid.addRow(0, new Label("Kullanıcı Ad:"), usernameField);
+			grid.addRow(1 new Label("Kullanıcı Email:"), emailField);
+			grid.addRow(2, new Label("Kullanıcı Rol:"), roleField);
+			dialog.getDialogPane().setContent(grid);
+			dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK);
+			dialog.setResultConverter(dialogButton -> {
+				if (dialogButton == ButtonType.OK) {
+					showAlert("Bilgi", "Kullanıcı profili görüntülendi.", Alert.AlertType.INFORMATION);
+					//switchToUserHomePane();
+				}
+			}
+		}
+    }
 
     @FXML
     private void switchToLoginPane() {
@@ -101,6 +219,33 @@ public class RegisterController {
             System.out.println(SpecialColor.RED + "Login Sayfasına yönlendirme başarısız" + SpecialColor.RESET);
             e.printStackTrace();
             showAlert("Hata", "Login ekranı yüklenemedi", Alert.AlertType.ERROR);
+        }
+    }
+	
+	@FXML
+    private void notebook(ActionEvent event) {
+        switchToNotebookPane();
+    }
+	
+	@FXML
+    private void switchToNotebookPane() {
+        try {
+            SceneHelper.switchScene(FXMLPath.NOTEBOOK, usernameField, "NOTLAR");
+        } catch (Exception e) {
+            System.out.println(SpecialColor.RED + "Not sayfasına yönlendirme başarısız" + SpecialColor.RESET);
+            e.printStackTrace();
+            showAlert("Hata", "Not ekranı yüklenemedi", Alert.AlertType.ERROR);
+        }
+    }
+	
+	@FXML
+    private void switchToUserHomePane() {
+        try {
+            SceneHelper.switchScene(FXMLPath.USER_HOME, usernameField, "KULLANICI ANASAYFA");
+        } catch (Exception e) {
+            System.out.println(SpecialColor.RED + "Kuallanıcı anasayfasına yönlendirme başarısız" + SpecialColor.RESET);
+            e.printStackTrace();
+            showAlert("Hata", "Kullanıcı anasayfa ekranı yüklenemedi", Alert.AlertType.ERROR);
         }
     }
 }
