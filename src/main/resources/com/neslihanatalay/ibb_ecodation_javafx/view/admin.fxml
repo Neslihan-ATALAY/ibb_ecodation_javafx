@@ -22,11 +22,14 @@
 
                 <Button text="🚦Çıkış" onAction="#logout" style="-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-background-radius: 8;" />
                 <Label fx:id="clockLabel" style="-fx-text-fill: white;" />
+                <Label fx:id="LoginUserIdLabelField" visible="false" />
             </HBox>
 
             <MenuBar fx:id="menuBar" style="-fx-background-color: white; -fx-text-fill: #2c3e50;">
             <menus>
                     <Menu text="Dosya">
+						<MenuItem text="Profil" onAction="#showProfile" />
+						<MenuItem text="Profili Güncelle" onAction="#updateProfile" />
                         <MenuItem text="Çıkış" onAction="#logout" />
                     </Menu>
                     <Menu text="Kullanıcı">
