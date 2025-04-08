@@ -2,6 +2,8 @@ package com.neslihanatalay.ibb_ecodation_javafx.controller;
 
 import com.neslihanatalay.ibb_ecodation_javafx.dao.NotebookDAO;
 import com.neslihanatalay.ibb_ecodation_javafx.dto.NotebookDTO;
+import com.neslihanatalay.ibb_ecodation_javafx.dao.UserDAO;
+import com.neslihanatalay.ibb_ecodation_javafx.dto.UserDTO;
 import com.neslihanatalay.ibb_ecodation_javafx.utils.ECategory;
 import com.neslihanatalay.ibb_ecodation_javafx.utils.FXMLPath;
 import com.neslihanatalay.ibb_ecodation_javafx.utils.SceneHelper;
@@ -21,6 +23,7 @@ import java.util.Optional;
 public class NotebookController {
 
     private final NotebookDAO notebookDAO = new NotebookDAO();
+    private final UserDAO userDAO = new UserDAO();
 
     @FXML private TableView<NotebookDTO> notebookTable;
     @FXML private TableColumn<NotebookDTO, Integer> idColumn;
