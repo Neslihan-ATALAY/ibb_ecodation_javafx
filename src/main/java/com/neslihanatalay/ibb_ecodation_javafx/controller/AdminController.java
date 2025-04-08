@@ -1,8 +1,8 @@
+
 package com.neslihanatalay.ibb_ecodation_javafx.controller;
 
 import com.neslihanatalay.ibb_ecodation_javafx.dao.KdvDAO;
 import com.neslihanatalay.ibb_ecodation_javafx.dao.UserDAO;
-import com.neslihanatalay.ibb_ecodation_javafx.dao.NotebookDAO;
 import com.neslihanatalay.ibb_ecodation_javafx.dto.KdvDTO;
 import com.neslihanatalay.ibb_ecodation_javafx.dto.UserDTO;
 import com.neslihanatalay.ibb_ecodation_javafx.utils.ERole;
@@ -22,12 +22,13 @@ import javafx.print.PrinterJob;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.SceneHelper;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.GridPane;
 import javafx.stage.Stage;
 import javafx.util.Duration;
+import org.apache.commons.*
+//import org.apache.commons.httpclient.*;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
@@ -58,12 +59,10 @@ public class AdminController {
 
     private UserDAO userDAO;
     private KdvDAO kdvDAO;
-    private NotebookDAO notebookDAO;
 
     public AdminController() {
         userDAO = new UserDAO();
         kdvDAO = new KdvDAO();
-	notebookDAO = new NotebookDAO();
     }
 
     @FXML private TableView<UserDTO> userTable;
@@ -75,29 +74,20 @@ public class AdminController {
     @FXML private TextField searchField;
     @FXML private ComboBox<ERole> filterRoleComboBox;
 
-    @FXML
-    private TableView<KdvDTO> kdvTable;
-    @FXML
-    private TableColumn<KdvDTO, Integer> idColumnKdv;
-    @FXML
-    private TableColumn<KdvDTO, Double> amountColumn;
-    @FXML
-    private TableColumn<KdvDTO, Double> kdvRateColumn;
-    @FXML
-    private TableColumn<KdvDTO, Double> kdvAmountColumn;
-    @FXML
-    private TableColumn<KdvDTO, Double> totalAmountColumn;
-    @FXML
-    private TableColumn<KdvDTO, String> receiptColumn;
-    @FXML
-    private TableColumn<KdvDTO, LocalDate> dateColumn;
-    @FXML
-    private TableColumn<KdvDTO, String> descColumn;
-    @FXML
-    private TextField searchKdvField;
+    @FXML private TableView<KdvDTO> kdvTable;
+    @FXML private TableColumn<KdvDTO, Integer> idColumnKdv;
+    @FXML private TableColumn<KdvDTO, Double> amountColumn;
+    @FXML private TableColumn<KdvDTO, Double> kdvRateColumn;
+    @FXML private TableColumn<KdvDTO, Double> kdvAmountColumn;
+    @FXML private TableColumn<KdvDTO, Double> totalAmountColumn;
+    @FXML private TableColumn<KdvDTO, String> receiptColumn;
+    @FXML private TableColumn<KdvDTO, LocalDate> dateColumn;
+    @FXML private TableColumn<KdvDTO, String> descColumn;
+    @FXML private TextField searchKdvField;
+	
+    @FXML private LabelField LoginUserIdLabelField;
 
-    @FXML
-    private Label clockLabel;
+    @FXML private Label clockLabel;
 
     @FXML
     public void initialize() {
@@ -110,6 +100,10 @@ public class AdminController {
         );
         timeline.setCycleCount(Animation.INDEFINITE);
         timeline.play();
+		
+	//LoginUserIdLabelField = Integer.valueOf(Request["LoginUserIdLabelField"]);
+	// GİRİŞ YAPAN KULLANICININ ID NUMARASI LoginUserIdLabelField INTEGER DEĞİŞKENE KAYDEDİLİR
+	LoginUserIdLabelField.setText(Integer.valueOf(LoginUserIdLabelField.getText()));
 
         idColumn.setCellValueFactory(new PropertyValueFactory<>("id"));
         usernameColumn.setCellValueFactory(new PropertyValueFactory<>("username"));
@@ -611,6 +605,7 @@ public class AdminController {
                             .password(passwordField.getText().trim())
                             .email(emailField.getText().trim())
                             .role(roleComboBox.getValue())
+							.count(0)
                             .build();
                 }
                 return null;
@@ -649,67 +644,10 @@ public class AdminController {
         });
     }
 
-    @FXML
-    public void addUserEski(ActionEvent actionEvent) {
-
-        TextInputDialog usernameDialog = new TextInputDialog();
-        usernameDialog.setTitle("Kullanıcı Ekle");
-        usernameDialog.setHeaderText("Kullanıcı Adı");
-        usernameDialog.setContentText("Yeni kullanıcı adı giriniz:");
-        Optional<String> optionalUsername = usernameDialog.showAndWait();
-        if (optionalUsername.isEmpty()) return;
-        String username = optionalUsername.get().trim();
-
-        if (userDAO.isUsernameExists(username)) {
-            showAlert("Uyarı", "Bu kullanıcı adı zaten kayıtlı!", Alert.AlertType.WARNING);
-            return;
-        }
-
-        TextInputDialog passwordDialog = new TextInputDialog();
-        passwordDialog.setTitle("Kullanıcı Ekle");
-        passwordDialog.setHeaderText("Şifre");
-        passwordDialog.setContentText("Yeni şifre giriniz:");
-        Optional<String> optionalPassword = passwordDialog.showAndWait();
-        if (optionalPassword.isEmpty()) return;
-        String password = optionalPassword.get().trim();
-
-        TextInputDialog emailDialog = new TextInputDialog();
-        emailDialog.setTitle("Kullanıcı Ekle");
-        emailDialog.setHeaderText("E-posta");
-        emailDialog.setContentText("Yeni e-posta giriniz:");
-        Optional<String> optionalEmail = emailDialog.showAndWait();
-        if (optionalEmail.isEmpty()) return;
-        String email = optionalEmail.get().trim();
-
-        if (username.isEmpty() || password.isEmpty() || email.isEmpty()) {
-            showAlert("Hata", "Lütfen tüm alanları doldurun!", Alert.AlertType.ERROR);
-            return;
-        }
-
-        if (userDAO.isEmailExists(email)) {
-            showAlert("Uyarı", "Bu e-posta zaten kayıtlı!", Alert.AlertType.WARNING);
-            return;
-        }
-
-        UserDTO newUser = UserDTO.builder()
-                .username(username)
-                .password(password)
-                .email(email)
-                //.role(role)
-                .build();
-
-        Optional<UserDTO> createdUser = userDAO.create(newUser);
-        if (createdUser.isPresent()) {
-            showAlert("Başarılı", "Kullanıcı başarıyla eklendi!", Alert.AlertType.INFORMATION);
-            refreshTable();
-        } else {
-            showAlert("Hata", "Kullanıcı eklenirken hata oluştu!", Alert.AlertType.ERROR);
-        }
-    }
-
     private static class UpdateUserDialog extends Dialog<UserDTO> {
         private final TextField usernameField = new TextField();
         private final PasswordField passwordField = new PasswordField();
+		private final PasswordField passwordAgainField = new PasswordField();
         private final TextField emailField = new TextField();
         private final ComboBox<ERole> roleComboBox = new ComboBox<>();
 
@@ -737,10 +675,12 @@ public class AdminController {
             grid.add(usernameField, 1, 0);
             grid.add(new Label("Yeni Şifre:"), 0, 1);
             grid.add(passwordField, 1, 1);
-            grid.add(new Label("E-posta:"), 0, 2);
-            grid.add(emailField, 1, 2);
-            grid.add(new Label("Rol:"), 0, 3);
-            grid.add(roleComboBox, 1, 3);
+            grid.add(new Label("Yeni Şifre Tekrar:"), 0, 2);
+            grid.add(passwordAgainField, 1, 2);
+            grid.add(new Label("E-posta:"), 0, 3);
+            grid.add(emailField, 1, 3);
+            grid.add(new Label("Rol:"), 0, 4);
+            grid.add(roleComboBox, 1, 4);
 
             getDialogPane().setContent(grid);
 
@@ -748,60 +688,28 @@ public class AdminController {
             getDialogPane().getButtonTypes().addAll(updateButtonType, ButtonType.CANCEL);
 
             setResultConverter(dialogButton -> {
-                if (dialogButton == updateButtonType) {
-                    return UserDTO.builder()
-                            .username(usernameField.getText().trim())
-                            .password(passwordField.getText().trim().isEmpty()
+				if (dialogButton == updateButtonType) {
+                    try {
+						if (passwordField.equals(passwordAgainField)) {
+							return UserDTO.builder()
+								.username(usernameField.getText().trim())
+								.password(passwordField.getText().trim().isEmpty()
                                     ? existingUser.getPassword()
                                     : passwordField.getText().trim())
-                            .email(emailField.getText().trim())
-                            .role(ERole.valueOf(roleComboBox.getValue().name())) // Enum’dan string’e dönüşüm
-                            .build();
+								.email(emailField.getText().trim())
+								.role(ERole.valueOf(roleComboBox.getValue().name()))
+								.count(existingUser.getCount())
+								.build();
+						} else {
+							showAlert("Uyarı", "Yeni Şifre ve Yeni Şifre Tekrar alanlarını lütfen aynı doldurunuz!", Alert.AlertType.WARNING);
+							return;
+						}
+					} catch(Exception e) {
+						showAlert("Hata", "Geçersiz veri!", Alert.AlertType.ERROR);
+					}
                 }
                 return null;
             });
-        }
-    }
-
-    @FXML
-    public void updateUserEski(ActionEvent actionEvent) {
-        UserDTO selectedUser = userTable.getSelectionModel().getSelectedItem();
-
-        if (selectedUser == null) {
-            showAlert("Uyarı", "Lütfen güncellenecek bir kullanıcı seçin!", Alert.AlertType.WARNING);
-            return;
-        }
-
-        TextInputDialog usernameDialog = new TextInputDialog(selectedUser.getUsername());
-        usernameDialog.setTitle("Kullanıcı Adı Güncelle");
-        usernameDialog.setHeaderText("Yeni kullanıcı adını girin:");
-        Optional<String> newUsername = usernameDialog.showAndWait();
-        if (newUsername.isEmpty()) return;
-
-        TextInputDialog passwordDialog = new TextInputDialog();
-        passwordDialog.setTitle("Şifre Güncelle");
-        passwordDialog.setHeaderText("Yeni şifreyi girin:");
-        Optional<String> newPassword = passwordDialog.showAndWait();
-        if (newPassword.isEmpty()) return;
-
-        TextInputDialog emailDialog = new TextInputDialog(selectedUser.getEmail());
-        emailDialog.setTitle("Email Güncelle");
-        emailDialog.setHeaderText("Yeni e-posta adresini girin:");
-        Optional<String> newEmail = emailDialog.showAndWait();
-        if (newEmail.isEmpty()) return;
-
-        UserDTO updatedUser = UserDTO.builder()
-                .username(newUsername.get())
-                .password(newPassword.get())
-                .email(newEmail.get())
-                //.role(role)
-
-        Optional<UserDTO> result = userDAO.update(selectedUser.getId(), updatedUser);
-        if (result.isPresent()) {
-            showAlert("Başarılı", "Kullanıcı başarıyla güncellendi!", Alert.AlertType.INFORMATION);
-            refreshTable();
-        } else {
-            showAlert("Hata", "Güncelleme sırasında hata oluştu!", Alert.AlertType.ERROR);
         }
     }
 
@@ -983,10 +891,151 @@ public class AdminController {
     private void showNotifications(ActionEvent event) {
         // Bildirimleri gösteren popup veya panel açılacak
     }
+	
+	private static class UpdateProfileDialog extends Dialog<UserDTO> {
+        private final TextField usernameField = new TextField();
+        private final PasswordField passwordField = new PasswordField();
+		private final PasswordField passwordAgainField = new PasswordField();
+        private final TextField emailField = new TextField();
+        private final ComboBox<ERole> roleComboBox = new ComboBox<>();
+
+        public UpdateProfileDialog(UserDTO existingUser) {
+            setTitle("Profil Güncelle");
+            setHeaderText("Profil bilgilerini düzenleyin");
+
+            usernameField.setText(existingUser.getUsername());
+            emailField.setText(existingUser.getEmail());
+			passwordField.setText(existing.getPassword());
+			passwordAgainField.setText(existing.getPassword());
+            roleComboBox.getItems().addAll(ERole.values());
+
+            try {
+                roleComboBox.setValue(ERole.fromString(String.valueOf(existingUser.getRole())));
+            } catch (RuntimeException e) {
+                roleComboBox.setValue(ERole.USER);
+            }
+
+            GridPane grid = new GridPane();
+            grid.setHgap(10);
+            grid.setVgap(10);
+            grid.setPadding(new Insets(20, 150, 10, 10));
+
+            grid.add(new Label("Kullanıcı Adı:"), 0, 0);
+            grid.add(usernameField, 1, 0);
+            grid.add(new Label("Yeni Şifre:"), 0, 1);
+            grid.add(passwordField, 1, 1);
+			grid.add(new Label("Yeni Şifre Tekrar:"), 0, 2);
+            grid.add(passwordAgainField, 1, 2);
+            grid.add(new Label("E-posta:"), 0, 3);
+            grid.add(emailField, 1, 3);
+            grid.add(new Label("Rol:"), 0, 4);
+            grid.add(roleComboBox, 1, 4);
+
+            getDialogPane().setContent(grid);
+
+            ButtonType updateButtonType = new ButtonType("Güncelle", ButtonBar.ButtonData.OK_DONE);
+            getDialogPane().getButtonTypes().addAll(updateButtonType, ButtonType.CANCEL);
+
+            setResultConverter(dialogButton -> {
+                if (dialogButton == updateButtonType) {
+                    try {
+						if (passwordField.equals(passwordAgainField)) {
+							return UserDTO.builder()
+								.username(usernameField.getText().trim())
+								//////////////////////////
+								.password(passwordField.getText().trim().isEmpty()
+                                    ? existingUser.getPassword()
+                                    : passwordField.getText().trim())
+								.email(emailField.getText().trim())
+								.role(ERole.valueOf(roleComboBox.getValue().name()))
+								.count(existingUser.getCount())
+								.build();
+						} else {
+							showAlert("Uyarı", "Yeni Şifre ve Yeni Şifre Tekrar alanlarını lütfen aynı doldurunuz!", Alert.AlertType.WARNING);
+							return;
+						}
+					} catch(Exception e) {
+						showAlert("Hata", "Geçersiz veri!", Alert.AlertType.ERROR);
+					}
+                }
+                return null;
+            });
+        }
+    }
 
     @FXML
-    private void showProfile(ActionEvent event) {
-        // Kullanıcı profil bilgileri gösterilecek pencere
+    public void updateProfile() {		
+		if(Integer.valueOf(LoginUserIdLabelField.getText()) != 0) {
+			Integer userId = Integer.valueOf(LoginUserIdLabelField.getText());
+			UserDTO selectedUser = userDAO.findById(userId);
+			if (selectedUser.isPresent()) {
+				UpdateProfileDialog dialog = new UpdateProfileDialog(selectedUser);
+				Optional<UserDTO> result = dialog.showAndWait();
+				result.ifPresent(updatedUser -> {
+					if (updatedUser.getUsername().isEmpty() || updatedUser.getPassword().isEmpty() || updatedUser.getEmail().isEmpty()) {
+						showAlert("Hata", "Tüm alanlar doldurulmalı!", Alert.AlertType.ERROR);
+						return;
+					}
+					Optional<UserDTO> updated = userDAO.update(selectedUser.getId(), updatedUser);
+					if (updated.isPresent()) {
+						showAlert("Başarılı", "Profil güncellendi!", Alert.AlertType.INFORMATION);
+						showProfile();
+					} else {
+						showAlert("Hata", "Güncelleme işlemi başarısız!", Alert.AlertType.ERROR);
+					}
+				}
+			});
+		}
+    }
+	
+	@FXML
+    private void showProfile() {
+		private final LabelField usernameField = new LabelField();
+		private final LabelField emailField = new LabelField();
+		private final LabelField roleField = new LabelField();
+		private final LabelField countField = new LabelField();
+		if(Integer.valueOf(LoginUserIdLabelField.getText()) != 0) {
+			Integer userId = Integer.valueOf(LoginUserIdLabelField.getText());
+			Dialog<UserDTO> dialog = new Dialog<>();
+			dialog.setTitle("Kullanıcı Profili");
+			dialog.setHeaderText("Kullanıcı Profil Bilgileri");			
+			Optional<UserDTO> optionalUser = userDAO.findById(userId);
+			if (optionalUser.isPresent()) {
+				usernameField.setText(String.valueOf(optionalUser.getUsername()));
+				emailField.setText(String.valueOf(optionalUser.getEmail()));
+				roleField.setText(String.valueOf(optionalUser.getRole()));
+				countField.setText(String.valueOf(optionalUser.getCount() + 1));
+			}
+			GridPane grid = new GridPane();
+			grid.setHgap(10); grid.setVgap(10);
+			grid.addRow(0, new Label("Kullanıcı Ad:"), usernameField);
+			grid.addRow(1 new Label("Kullanıcı Email:"), emailField);
+			grid.addRow(2, new Label("Kullanıcı Rol:"), roleField);
+			grid.addRow(3, new Label("Kullanıcı Profili Görüntülenme Sayısı:"), countField);
+			dialog.getDialogPane().setContent(grid);
+			dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK);
+			dialog.setResultConverter(dialogButton -> {
+				if (dialogButton == ButtonType.OK) {
+					try {
+						Optional<UserDTO> updatedUser = UserDTO.builder()
+                            .username(String.valueOf(usernameField.getText()))
+                            .email(String.valueOf(emailField.getText()))
+							/////////////////////////////
+                            .password(String.valueOf(passwordField.getText()))
+							.role(ERole.fromString(String.valueOf(roleCombo.getValue())))
+							.count(Integer.valueOf(countField.getText()))
+                            .build();
+						if (updatedUser != null && updatedUser.isValid()) {
+							userDAO.update(optionalUser.getId(), updatedUser);
+							showAlert("Bilgi", "Kullanıcı profili görüntülendi.", Alert.AlertType.INFORMATION);
+							//switchToUserHomePane();
+						}
+                    } catch (Exception e) {
+                        showAlert("Hata", "Geçersiz veri!", Alert.AlertType.ERROR);
+                    }
+				}
+			}
+		}
     }
 
     @FXML
@@ -995,18 +1044,34 @@ public class AdminController {
     }
 
     @FXML
-    private void notebook(ActionEvent event) {
-         switchToNotebookPane();
+    private void restoreData(ActionEvent event) {
+        // Daha önce alınmış bir yedek dosyadan veri geri yüklenecek
     }
 
     @FXML
+    private void notebook(ActionEvent event) {
+        switchToNotebookPane();
+    }
+	
+	@FXML
     private void switchToNotebookPane() {
         try {
-            SceneHelper.switchScene(FXMLPath.NOTEBOOK, searchField, "NOTLAR");
+            SceneHelper.switchScene(FXMLPath.NOTEBOOK, titleField, "NOTLAR");
         } catch (Exception e) {
-            System.out.println(SpecialColor.RED + "Notlar Sayfasına yönlendirme başarısız" + SpecialColor.RESET);
+            System.out.println(SpecialColor.RED + "Not sayfasına yönlendirme başarısız" + SpecialColor.RESET);
             e.printStackTrace();
-            showAlert("Hata", "Notlar ekranı yüklenemedi", Alert.AlertType.ERROR);
+            showAlert("Hata", "Not ekranı yüklenemedi", Alert.AlertType.ERROR);
+        }
+    }
+	
+	@FXML
+    private void switchToAdminPane() {
+        try {
+            SceneHelper.switchScene(FXMLPath.ADMIN, titleField, "YÖNETİCİ");
+        } catch (Exception e) {
+            System.out.println(SpecialColor.RED + "Yönetici sayfasına yönlendirme başarısız" + SpecialColor.RESET);
+            e.printStackTrace();
+            showAlert("Hata", "Yönetici ekranı yüklenemedi", Alert.AlertType.ERROR);
         }
     }
 }
