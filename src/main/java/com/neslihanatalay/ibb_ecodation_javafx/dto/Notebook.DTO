@@ -1,6 +1,7 @@
 package com.neslihanatalay.ibb_ecodation_javafx.dto;
 
 import lombok.*;
+import com.neslihanatalay.ibb_ecodation_javafx.utils.ECategory;
 import java.time.LocalDate;
 
 @Getter
