@@ -26,7 +26,7 @@
                 <TableColumn fx:id="updatedDateColumn" text="Güncellenme Tarihi" />
                 <TableColumn fx:id="categoryColumn" text="Kategori" />
                 <TableColumn fx:id="pinnedColumn" text="Sabitlenmiş mi?" />
-                <!-- <TableColumn fx:id="userNameColumn" text="Ekleyen Kullanıcı" /> -->
+                <TableColumn fx:id="usernameColumn" text="Ekleyen Kullanıcı" />
             </columns>
         </TableView>
     </center>
