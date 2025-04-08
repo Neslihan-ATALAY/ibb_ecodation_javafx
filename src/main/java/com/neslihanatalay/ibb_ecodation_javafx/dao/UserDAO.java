@@ -23,13 +23,14 @@ public class UserDAO implements IDaoImplements<UserDTO>, ILogin<UserDTO> {
 
     @Override
     public Optional<UserDTO> create(UserDTO userDTO) {
-        String sql = "INSERT INTO usertable (username, password, email, role) VALUES (?, ?, ?, ?)";
+        String sql = "INSERT INTO usertable (username, password, email, role, count) VALUES (?, ?, ?, ?, ?)";
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS)) {
             String hashedPassword = BCrypt.hashpw(userDTO.getPassword(), BCrypt.gensalt());
             preparedStatement.setString(1, userDTO.getUsername());
             preparedStatement.setString(2, hashedPassword);
             preparedStatement.setString(3, userDTO.getEmail());
             preparedStatement.setString(4, userDTO.getRole().name());
+			preparedStatement.setInteger(5, userDTO.getCount());
             int affectedRows = preparedStatement.executeUpdate();
 
             if (affectedRows > 0) {
@@ -79,14 +80,15 @@ public class UserDAO implements IDaoImplements<UserDTO>, ILogin<UserDTO> {
     public Optional<UserDTO> update(int id, UserDTO userDTO) {
         Optional<UserDTO> optionalUpdate = findById(id);
         if (optionalUpdate.isPresent()) {
-            String sql = "UPDATE usertable SET username=?, password=?, email=?, role=? WHERE id=?";
+            String sql = "UPDATE usertable SET username=?, password=?, email=?, role=?, count=? WHERE id=?";
             try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
                 String hashedPassword = BCrypt.hashpw(userDTO.getPassword(), BCrypt.gensalt());
                 preparedStatement.setString(1, userDTO.getUsername());
                 preparedStatement.setString(2, hashedPassword);
                 preparedStatement.setString(3, userDTO.getEmail());
                 preparedStatement.setString(4, userDTO.getRole().name());
-                preparedStatement.setInt(5, id);
+				preparedStatement.setInteger(5, userDTO.getCount());
+                preparedStatement.setInt(6, id);
 
                 int affectedRows = preparedStatement.executeUpdate();
                 if (affectedRows > 0) {
@@ -127,6 +129,7 @@ public class UserDAO implements IDaoImplements<UserDTO>, ILogin<UserDTO> {
                 .password(resultSet.getString("password"))
                 .email(resultSet.getString("email"))
                 .role(ERole.fromString(resultSet.getString("role")))
+				.count(resultSet.getInteger("count"))
                 .build();
     }
 
