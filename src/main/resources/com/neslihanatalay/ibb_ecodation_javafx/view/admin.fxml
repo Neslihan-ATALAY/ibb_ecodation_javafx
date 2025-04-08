@@ -28,8 +28,8 @@
             <MenuBar fx:id="menuBar" style="-fx-background-color: white; -fx-text-fill: #2c3e50;">
             <menus>
                     <Menu text="Dosya">
-						<MenuItem text="Profil" onAction="#showProfile" />
-						<MenuItem text="Profili Güncelle" onAction="#updateProfile" />
+			<MenuItem text="Profil" onAction="#showProfile" />
+			<MenuItem text="Profili Güncelle" onAction="#updateProfile" />
                         <MenuItem text="Çıkış" onAction="#logout" />
                     </Menu>
                     <Menu text="Kullanıcı">
