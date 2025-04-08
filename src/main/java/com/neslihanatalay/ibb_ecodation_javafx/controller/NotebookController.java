@@ -30,12 +30,12 @@ public class NotebookController {
     @FXML private TableColumn<NotebookDTO, LocalDate> updatedDateColumn;
     @FXML private TableColumn<NotebookDTO, String> categoryColumn;
     @FXML private TableColumn<NotebookDTO, Boolean> pinnedColumn;
-	@FXML private TableColumn<NotebookDTO, String> usernameColumn;
+    @FXML private TableColumn<NotebookDTO, String> usernameColumn;
     @FXML private TextField searchField;
 	
-	private Integer LoginUserIdLabelField = 0;
+    private Integer LoginUserIdLabelField = 0;
 
-	@FXML
+    @FXML
     private void showAlert(String title, String message, Alert.AlertType type) {
         Alert alert = new Alert(type);
         alert.setTitle(title);
@@ -59,15 +59,15 @@ public class NotebookController {
         updatedDateColumn.setCellValueFactory(new PropertyValueFactory<>("updatedDate"));
         categoryColumn.setCellValueFactory(new PropertyValueFactory<>("category"));
         pinnedColumn.setCellValueFactory(new PropertyValueFactory<>("pinned"));
-		usernameColumn.setCellValueFactory(new PropertyValueFactory<>("userId"));
+	usernameColumn.setCellValueFactory(new PropertyValueFactory<>("userId"));
         searchField.textProperty().addListener((obs, oldVal, newVal) -> applyFilter());
         refreshTable();
 		
-		LoginUserIdLabelField = Integer.valueOf(Request["LoginUserIdLabelField"]);
+	LoginUserIdLabelField = Integer.valueOf(Request["LoginUserIdLabelField"]);
     }
 	
-	@FXML
-	private void applyFilter() {
+    @FXML
+    private void applyFilter() {
         String keyword = searchField.getText().trim().toLowerCase();
         Optional<List<NotebookDTO>> all = notebookDAO.list();
         List<NotebookDTO> filtered = all.orElse(List.of()).stream()
@@ -82,7 +82,7 @@ public class NotebookController {
         refreshTable();
     }
 
-	@FXML
+    @FXML
     public void refreshTable() {
         Optional<List<NotebookDTO>> list = NotebookDAO.list();
         list.ifPresent(data -> notebookTable.setItems(FXCollections.observableArrayList(data)));
@@ -98,7 +98,7 @@ public class NotebookController {
         }
     }
 	
-	@FXML
+    @FXML
     private void updateNotebook(ActionEvent event) {
         NotebookDTO selected = notebookTable.getSelectionModel().getSelectedItem();
         if (selected == null) {
@@ -113,7 +113,7 @@ public class NotebookController {
         }
     }
 
-	@FXML
+    @FXML
     private void deleteNotebook(ActionEvent event) {
         NotebookDTO selected = notebookTable.getSelectionModel().getSelectedItem();
         if (selected == null) {
@@ -130,7 +130,7 @@ public class NotebookController {
         }
     }
 
-	@FXML
+    @FXML
     private NotebookDTO showNotebookForm(NotebookDTO existing) {
         Dialog<NotebookDTO> dialog = new Dialog<>();
         dialog.setTitle(existing == null ? "Yeni Not Ekle" : "Not Güncelle");
@@ -143,7 +143,7 @@ public class NotebookController {
         categoryField.getItems().addAll(ECategory.values());
         categoryField.setValue(ECategory.PERSONAL);
         CheckBox pinnedField = new CheckBox();
-		LabelField usernameField = new LabelField();
+	LabelField usernameField = new LabelField();
 
         if (existing != null) {
             titleField.setText(String.valueOf(existing.getTitle()));
@@ -152,7 +152,12 @@ public class NotebookController {
             updatedDateField.setValue(existing.getUpdatedDate());
             categoryField.setValue(existing.getCategory());
             pinnedField.setValue(Boolean.parseBoolean(existing.getPinned()));
-			usernameField.setValue((userDAO.findById(existing.getUserId())).isPresent() ? (userDAO.findById(existing.getUserId())).getUsername() : "");
+	    UserDTO userDTO = userDAO.findById(existing.getUserId());
+	    if (userDTO.isPresent()) {
+	    	usernameField.setValue(userDTO.getUsername());
+	    } else {
+		usernameField.setValue("");
+	    }
         }
 
         GridPane grid = new GridPane();
@@ -163,7 +168,7 @@ public class NotebookController {
         grid.addRow(3, new Label("Not Güncelleme Tarihi:"), updatedDateField);
         grid.addRow(4, new Label("Kategori:"), categoryField);
         grid.addRow(5, new Label("Not Sabitlendi:"), pinnedField);
-		grid.addRow(6, new Label("Kullanıcı Adı:"), usernameField);
+	grid.addRow(6, new Label("Kullanıcı Adı:"), usernameField);
 		
         dialog.getDialogPane().setContent(grid);
         dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
@@ -179,7 +184,7 @@ public class NotebookController {
                             .category(ECategory.valueOf(categoryComboBox.getValue().name()))
                             //.category(categoryField.getValue())
                             .pinned(Boolean.parseBoolean(pinnedField.getValue()))
-							.userId((LoginUserIdLabelField != 0) ? Integer.valueOf(LoginUserIdLabelField) : 0)
+			    .userId(existing.getUserId())
                             .build();
                 } catch (Exception e) {
                     showAlert("Hata", "Geçersiz veri!", Alert.AlertType.ERROR);
