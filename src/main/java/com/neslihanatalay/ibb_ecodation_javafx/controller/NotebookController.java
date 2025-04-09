@@ -21,6 +21,8 @@ import javafx.scene.input.KeyEvent;
 import javafx.stage.Stage;
 
 import java.util.Optional;
+import org.apache.commons.*
+import org.apache.commons.httpclient.*;
 
 public class NotebookController {
 
