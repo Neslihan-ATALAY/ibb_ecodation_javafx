@@ -15,6 +15,9 @@
 
     <Label text="Şifre:" GridPane.rowIndex="2" GridPane.columnIndex="0" />
     <PasswordField fx:id="passwordField" GridPane.rowIndex="2" GridPane.columnIndex="1" />
+	
+    <Label text="Kullanıcı Rol:" GridPane.rowIndex="3" GridPane.columnIndex="0" />
+    <ComboBox fx:id="roleField" GridPane.rowIndex="3" GridPane.columnIndex="1" />
 
-    <Button text="Kayıt Ol" onAction="#register" GridPane.rowIndex="3" GridPane.columnIndex="1" />
+    <Button text="Kayıt Ol" onAction="#register" GridPane.rowIndex="4" GridPane.columnIndex="1" />
 </GridPane>
