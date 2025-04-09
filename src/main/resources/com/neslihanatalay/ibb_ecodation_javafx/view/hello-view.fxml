@@ -16,6 +16,7 @@
                 <Button text="Profil" onAction="#showProfile" style="-fx-background-color: #8e44ad; -fx-text-fill: white; -fx-background-radius: 8;" />
                 <Button text="Çıkış" onAction="#logout" style="-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-background-radius: 8;" />
                 <Label fx:id="clockLabel" style="-fx-text-fill: white;" />
+		<Label fx:id="LoginUserIdLabelField" visible="false" />
             </HBox>
             <MenuBar fx:id="menuBar" style="-fx-background-color: white; -fx-text-fill: #2c3e50;">
 		<menus>
@@ -24,7 +25,7 @@
 			<MenuItem text="Profili Güncelle" onAction="#updateProfile" />
                         <MenuItem text="Çıkış" onAction="#logout" />
                     </Menu>
-		    <Menu text="Diğer İşlemler">
+			<Menu text="Diğer İşlemler">
 			<MenuItem text="Hesap Makinesi" onAction="#openCalculator" />
 			<MenuItem text="Not Defteri" onAction="#notebook" />
 		    </Menu>
@@ -37,15 +38,15 @@
     </top>
     <center>
         <SplitPane orientation="HORIZONTAL" style="-fx-background-image: url('/images/login.webp'); -fx-background-size: cover;">
-		<VBox alignment="CENTER" spacing="20.0" xmlns:fx="http://javafx.com/fxml"
-			fx:controller="com.neslihanatalay.ibb_ecodation_javafx.HelloController">
-			<padding>
-				<Insets bottom="20.0" left="20.0" right="20.0" top="20.0"/>
-			</padding>
-
-			<Label fx:id="welcomeText"/>
-			<Button text="Hello!" onAction="#onHelloButtonClick"/>
-		</VBox>
+	    <VBox alignment="CENTER" spacing="20.0" xmlns:fx="http://javafx.com/fxml"
+	    fx:controller="com.neslihanatalay.ibb_ecodation_javafx.HelloController">
+		<padding>
+		    <Insets bottom="20.0" left="20.0" right="20.0" top="20.0"/>
+		</padding>
+		<Label fx:id="welcomeLabel"/>
+		<Label fx:id="welcomeText"/>
+		<Button text="Hello!" onAction="#onHelloButtonClick"/>
+	    </VBox>
 	</SplitPane>
     </center>
 
