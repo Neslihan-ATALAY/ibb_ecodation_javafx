@@ -160,18 +160,16 @@ public class AdminController {
         List<UserDTO> fullList = optionalUsers.orElseGet(List::of);
 
         List<UserDTO> filteredList = fullList.stream()
-                .filter(user -> {
-                    boolean matchesKeyword = keyword.isEmpty() ||
-                            user.getUsername().toLowerCase().contains(keyword) ||
-                            user.getEmail().toLowerCase().contains(keyword) ||
-                            user.getRole().getDescription().toLowerCase().contains(keyword);
+            .filter(user -> {
+                boolean matchesKeyword = keyword.isEmpty() ||
+                    user.getUsername().toLowerCase().contains(keyword) ||
+                    user.getEmail().toLowerCase().contains(keyword) ||
+                    user.getRole().getDescription().toLowerCase().contains(keyword);
 
                     boolean matchesRole = (selectedRole == null) || user.getRole() == selectedRole;
-
                     return matchesKeyword && matchesRole;
-                })
-                .toList();
-
+            })
+            .toList();
         userTable.setItems(FXCollections.observableArrayList(filteredList));
     }
 
@@ -984,27 +982,27 @@ public class AdminController {
     @FXML
     public void updateProfile() {		
 	//if(Integer.valueOf(LoginUserIdLabelField.getText()) != 0) {
-			//Integer userId = Integer.valueOf(LoginUserIdLabelField.getText());
-		if (getLoginUserId() != 0) {
-			UserDTO selectedUser = userDAO.findById(getLoginUserId());
-			if (selectedUser.isPresent()) {
-				UpdateProfileDialog dialog = new UpdateProfileDialog(selectedUser);
-				Optional<UserDTO> result = dialog.showAndWait();
-				result.ifPresent(updatedUser -> {
-					if (updatedUser.getUsername().isEmpty() || updatedUser.getPassword().isEmpty() || updatedUser.getEmail().isEmpty()) {
-						showAlert("Hata", "Tüm alanlar doldurulmalı!", Alert.AlertType.ERROR);
-						return;
-					}
-					Optional<UserDTO> updated = userDAO.update(selectedUser.getId(), updatedUser);
-					if (updated.isPresent()) {
-						showAlert("Başarılı", "Profil güncellendi!", Alert.AlertType.INFORMATION);
-						showProfile();
-					} else {
-						showAlert("Hata", "Güncelleme işlemi başarısız!", Alert.AlertType.ERROR);
-					}
-				}
-			});
-		}
+	    //Integer userId = Integer.valueOf(LoginUserIdLabelField.getText());
+	if (getLoginUserId() != 0) {
+	    UserDTO selectedUser = userDAO.findById(getLoginUserId());
+	    if (selectedUser.isPresent()) {
+		UpdateProfileDialog dialog = new UpdateProfileDialog(selectedUser);
+		Optional<UserDTO> result = dialog.showAndWait();
+		result.ifPresent(updatedUser -> {
+		    if (updatedUser.getUsername().isEmpty() || updatedUser.getPassword().isEmpty() || updatedUser.getEmail().isEmpty()) {
+			showAlert("Hata", "Tüm alanlar doldurulmalı!", Alert.AlertType.ERROR);
+			return;
+		    }
+		    Optional<UserDTO> updated = userDAO.update(selectedUser.getId(), updatedUser);
+		    if (updated.isPresent()) {
+			showAlert("Başarılı", "Profil güncellendi!", Alert.AlertType.INFORMATION);
+			showProfile();
+		    } else {
+		        showAlert("Hata", "Güncelleme işlemi başarısız!", Alert.AlertType.ERROR);
+		    }
+	    	});
+	    }
+	}
     }
 	
     // PROFIL GÖRÜNTÜLEME
