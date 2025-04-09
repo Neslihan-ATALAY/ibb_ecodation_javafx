@@ -10,6 +10,7 @@ public interface ICrud<T> {
 
     // LIST
     Optional<List<T>> list();
+	Optional<List<T>> listByUserId(int userId) {
 
     // FIND
     Optional<T> findByName(String name);
