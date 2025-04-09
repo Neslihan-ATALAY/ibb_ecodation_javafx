@@ -995,8 +995,8 @@ public class AdminController {
 		    }
 		    Optional<UserDTO> updated = userDAO.update(selectedUser.getId(), updatedUser);
 		    if (updated.isPresent()) {
-			showAlert("Başarılı", "Profil güncellendi!", Alert.AlertType.INFORMATION);
-			showProfile();
+			showAlert("Başarılı", "Profil güncellendi.", Alert.AlertType.INFORMATION);
+			//showProfile();
 		    } else {
 		        showAlert("Hata", "Güncelleme işlemi başarısız!", Alert.AlertType.ERROR);
 		    }
