@@ -16,7 +16,7 @@ public class UserDTO {
     private String password;
     private String email;
     private ERole role;
-	private Integer count;
+    private Integer count;
 
     public UserDTO(Integer id, String username, String password, String email, ERole role, Integer count) {
         this.id = id;
@@ -24,7 +24,7 @@ public class UserDTO {
         this.password = password;
         this.email = email;
         this.role = role;
-		this.count = count;
+	this.count = count;
     }
 	
 	public Integer getId() {
@@ -74,17 +74,4 @@ public class UserDTO {
 	public void setCount(Integer count) {
 		this.count = count;
 	}
-	
-    /*
-    public static void main(String[] args) {
-        UserDTO userDTO= UserDTO.builder()
-                .id(0)
-                .username("neslihan")
-                .email("atalay.neslihan.2015@gmail.com")
-                .password("root")
-                .build();
-
-        System.out.println(userDTO);
-    }
-    */
 }
