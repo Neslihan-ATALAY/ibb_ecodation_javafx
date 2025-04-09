@@ -9,6 +9,8 @@
     <!-- ÜST: Arama ve Filtre 	-->
     <top>
         <HBox spacing="10" padding="10">
+	    <Label fx:id="welcomeLabel"/>
+	    <Label fx:id="LoginUserIdLabelField" visible="false" />
             <Label text="Ara (Not Başlığı):" />
             <TextField fx:id="searchField" promptText="Not giriniz..." />
             <Button text="Filtreyi Temizle" onAction="#clearFilters" />
@@ -22,7 +24,7 @@
                 <TableColumn fx:id="idColumn" text="ID" />
                 <TableColumn fx:id="titleColumn" text="Başlık" />
                 <TableColumn fx:id="contentColumn" text="İçerik" />
-		<TableColumn fx:id="createdDateColumn" text="Oluşturulma Tarihi" />
+				<TableColumn fx:id="createdDateColumn" text="Oluşturulma Tarihi" />
                 <TableColumn fx:id="updatedDateColumn" text="Güncellenme Tarihi" />
                 <TableColumn fx:id="categoryColumn" text="Kategori" />
                 <TableColumn fx:id="pinnedColumn" text="Sabitlenmiş mi?" />
