@@ -28,7 +28,7 @@ import javafx.scene.layout.GridPane;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import org.apache.commons.*
-//import org.apache.commons.httpclient.*;
+import org.apache.commons.httpclient.*;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
@@ -38,7 +38,8 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import javax.mail.*;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
@@ -85,10 +86,14 @@ public class AdminController {
     @FXML private TableColumn<KdvDTO, String> descColumn;
     @FXML private TextField searchKdvField;
 	
-    @FXML private LabelField LoginUserIdLabelField;
-
+	@FXML private Label LoginUserIdLabelField;
+	@FXML private Label welcomeLabel;
     @FXML private Label clockLabel;
-
+	private static Integer loginUserId;
+	
+	public static Integer getLoginUserId() { return loginUserId; }
+	public static void setLoginUserId(Integer loginUserId) { this.loginUserId = loginUserId; }
+	
     @FXML
     public void initialize() {
         Timeline timeline = new Timeline(
@@ -101,9 +106,14 @@ public class AdminController {
         timeline.setCycleCount(Animation.INDEFINITE);
         timeline.play();
 		
-	//LoginUserIdLabelField = Integer.valueOf(Request["LoginUserIdLabelField"]);
-	// GİRİŞ YAPAN KULLANICININ ID NUMARASI LoginUserIdLabelField INTEGER DEĞİŞKENE KAYDEDİLİR
-	LoginUserIdLabelField.setText(Integer.valueOf(LoginUserIdLabelField.getText()));
+		// GİRİŞ YAPAN KULLANICININ ID NUMARASI LoginUserIdLabelField'e KAYDEDİLİR
+		//LoginUserIdLabelField.setText(Integer.valueOf(request.getParameter("user")));
+		setLoginUserId(Integer.valueOf(Request["user"].toString()));
+		LoginUserIdLabelField.setText(Request["user"].toString());
+		UserDTO userDTO = userDAO.findById(getLoginUserId());
+		if (userDTO.isPresent()) {
+			welcomeLabel.setText("Merhaba " + userDTO.getUsername() + ", Hoşgeldiniz");
+		}
 
         idColumn.setCellValueFactory(new PropertyValueFactory<>("id"));
         usernameColumn.setCellValueFactory(new PropertyValueFactory<>("username"));
@@ -564,6 +574,7 @@ public class AdminController {
     private static class AddUserDialog extends Dialog<UserDTO> {
         private final TextField usernameField = new TextField();
         private final PasswordField passwordField = new PasswordField();
+		private final PasswordField passwordAgainField = new PasswordField();
         private final TextField emailField = new TextField();
         private final ComboBox<String> roleComboBox = new ComboBox<>();
 
@@ -578,7 +589,6 @@ public class AdminController {
             roleComboBox.getItems().addAll(ERole.values());
             roleComboBox.setValue(ERole.USER); // Varsayılan seçim
 
-
             GridPane grid = new GridPane();
             grid.setHgap(10);
             grid.setVgap(10);
@@ -588,10 +598,12 @@ public class AdminController {
             grid.add(usernameField, 1, 0);
             grid.add(new Label("Şifre:"), 0, 1);
             grid.add(passwordField, 1, 1);
-            grid.add(new Label("E-posta:"), 0, 2);
-            grid.add(emailField, 1, 2);
-            grid.add(new Label("Rol:"), 0, 3);
-            grid.add(roleComboBox, 1, 3);
+			grid.add(new Label("Yeni Şifre:"), 0, 2);
+            grid.add(passwordAgainField, 1, 2);
+            grid.add(new Label("E-posta:"), 0, 3);
+            grid.add(emailField, 1, 3);
+            grid.add(new Label("Rol:"), 0, 4);
+            grid.add(roleComboBox, 1, 4);
 
             getDialogPane().setContent(grid);
 
@@ -600,13 +612,18 @@ public class AdminController {
 
             setResultConverter(dialogButton -> {
                 if (dialogButton == addButtonType) {
-                    return UserDTO.builder()
-                            .username(usernameField.getText().trim())
-                            .password(passwordField.getText().trim())
-                            .email(emailField.getText().trim())
-                            .role(roleComboBox.getValue())
+					if (passwordField.equals(passwordAgainField)) {
+						return UserDTO.builder()
+							.username(usernameField.getText().trim())
+							.password(passwordField.getText().trim())
+							.email(emailField.getText().trim())
+							.role(ERole.valueOf(roleComboBox.getValue().name()))
 							.count(0)
-                            .build();
+							.build();
+					} else {
+						showAlert("Uyarı", "Yeni Şifre ve Yeni Şifre Tekrar alanlarını lütfen aynı doldurunuz!", Alert.AlertType.WARNING);
+						return;
+					}
                 }
                 return null;
             });
@@ -892,6 +909,7 @@ public class AdminController {
         // Bildirimleri gösteren popup veya panel açılacak
     }
 	
+	//PROFIL GÜNCELLEME DIALOG
 	private static class UpdateProfileDialog extends Dialog<UserDTO> {
         private final TextField usernameField = new TextField();
         private final PasswordField passwordField = new PasswordField();
@@ -942,7 +960,6 @@ public class AdminController {
 						if (passwordField.equals(passwordAgainField)) {
 							return UserDTO.builder()
 								.username(usernameField.getText().trim())
-								//////////////////////////
 								.password(passwordField.getText().trim().isEmpty()
                                     ? existingUser.getPassword()
                                     : passwordField.getText().trim())
@@ -963,11 +980,13 @@ public class AdminController {
         }
     }
 
+	//PROFIL GÜNCELLEME
     @FXML
     public void updateProfile() {		
-		if(Integer.valueOf(LoginUserIdLabelField.getText()) != 0) {
-			Integer userId = Integer.valueOf(LoginUserIdLabelField.getText());
-			UserDTO selectedUser = userDAO.findById(userId);
+		//if(Integer.valueOf(LoginUserIdLabelField.getText()) != 0) {
+			//Integer userId = Integer.valueOf(LoginUserIdLabelField.getText());
+		if (getLoginUserId() != 0) {
+			UserDTO selectedUser = userDAO.findById(getLoginUserId());
 			if (selectedUser.isPresent()) {
 				UpdateProfileDialog dialog = new UpdateProfileDialog(selectedUser);
 				Optional<UserDTO> result = dialog.showAndWait();
@@ -988,18 +1007,20 @@ public class AdminController {
 		}
     }
 	
+	// PROFIL GÖRÜNTÜLEME
 	@FXML
     private void showProfile() {
 		private final LabelField usernameField = new LabelField();
 		private final LabelField emailField = new LabelField();
 		private final LabelField roleField = new LabelField();
 		private final LabelField countField = new LabelField();
-		if(Integer.valueOf(LoginUserIdLabelField.getText()) != 0) {
-			Integer userId = Integer.valueOf(LoginUserIdLabelField.getText());
+		//if(Integer.valueOf(LoginUserIdLabelField.getText()) != 0) {
+			//Integer userId = Integer.valueOf(LoginUserIdLabelField.getText());
+		if (getLoginUserId() != 0) {
 			Dialog<UserDTO> dialog = new Dialog<>();
 			dialog.setTitle("Kullanıcı Profili");
 			dialog.setHeaderText("Kullanıcı Profil Bilgileri");			
-			Optional<UserDTO> optionalUser = userDAO.findById(userId);
+			Optional<UserDTO> optionalUser = userDAO.findById(getLoginUserId());
 			if (optionalUser.isPresent()) {
 				usernameField.setText(String.valueOf(optionalUser.getUsername()));
 				emailField.setText(String.valueOf(optionalUser.getEmail()));
@@ -1020,7 +1041,6 @@ public class AdminController {
 						Optional<UserDTO> updatedUser = UserDTO.builder()
                             .username(String.valueOf(usernameField.getText()))
                             .email(String.valueOf(emailField.getText()))
-							/////////////////////////////
                             .password(String.valueOf(passwordField.getText()))
 							.role(ERole.fromString(String.valueOf(roleCombo.getValue())))
 							.count(Integer.valueOf(countField.getText()))
@@ -1048,6 +1068,7 @@ public class AdminController {
         // Daha önce alınmış bir yedek dosyadan veri geri yüklenecek
     }
 
+	// NOTLAR SAYFASINA GEÇİŞ
     @FXML
     private void notebook(ActionEvent event) {
         switchToNotebookPane();
@@ -1056,7 +1077,7 @@ public class AdminController {
 	@FXML
     private void switchToNotebookPane() {
         try {
-            SceneHelper.switchScene(FXMLPath.NOTEBOOK, titleField, "NOTLAR");
+            SceneHelper.switchScene(FXMLPath.NOTEBOOK + "?user=" + getLoginUserId().toString(), searchField, "NOTLAR");
         } catch (Exception e) {
             System.out.println(SpecialColor.RED + "Not sayfasına yönlendirme başarısız" + SpecialColor.RESET);
             e.printStackTrace();
@@ -1067,7 +1088,7 @@ public class AdminController {
 	@FXML
     private void switchToAdminPane() {
         try {
-            SceneHelper.switchScene(FXMLPath.ADMIN, titleField, "YÖNETİCİ");
+            SceneHelper.switchScene(FXMLPath.ADMIN + "?user" + getLoginUserId().toString(), searchField, "YÖNETİCİ");
         } catch (Exception e) {
             System.out.println(SpecialColor.RED + "Yönetici sayfasına yönlendirme başarısız" + SpecialColor.RESET);
             e.printStackTrace();
