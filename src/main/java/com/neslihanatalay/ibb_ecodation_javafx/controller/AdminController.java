@@ -1007,55 +1007,55 @@ public class AdminController {
 		}
     }
 	
-	// PROFIL GÖRÜNTÜLEME
-	@FXML
+    // PROFIL GÖRÜNTÜLEME
+    @FXML
     private void showProfile() {
-		private final LabelField usernameField = new LabelField();
-		private final LabelField emailField = new LabelField();
-		private final LabelField roleField = new LabelField();
-		private final LabelField countField = new LabelField();
-		//if(Integer.valueOf(LoginUserIdLabelField.getText()) != 0) {
-			//Integer userId = Integer.valueOf(LoginUserIdLabelField.getText());
-		if (getLoginUserId() != 0) {
-			Dialog<UserDTO> dialog = new Dialog<>();
-			dialog.setTitle("Kullanıcı Profili");
-			dialog.setHeaderText("Kullanıcı Profil Bilgileri");			
-			Optional<UserDTO> optionalUser = userDAO.findById(getLoginUserId());
-			if (optionalUser.isPresent()) {
-				usernameField.setText(String.valueOf(optionalUser.getUsername()));
-				emailField.setText(String.valueOf(optionalUser.getEmail()));
-				roleField.setText(String.valueOf(optionalUser.getRole()));
-				countField.setText(String.valueOf(optionalUser.getCount() + 1));
+	private final LabelField usernameField = new LabelField();
+	private final LabelField emailField = new LabelField();
+	private final LabelField roleField = new LabelField();
+	private final LabelField countField = new LabelField();
+	//if(Integer.valueOf(LoginUserIdLabelField.getText()) != 0) {
+	    //Integer userId = Integer.valueOf(LoginUserIdLabelField.getText());
+	if (getLoginUserId() != 0) {
+	    Dialog<UserDTO> dialog = new Dialog<>();
+	    dialog.setTitle("Kullanıcı Profili");
+	    dialog.setHeaderText("Kullanıcı Profil Bilgileri");			
+	    Optional<UserDTO> optionalUser = userDAO.findById(getLoginUserId());
+	    if (optionalUser.isPresent()) {
+		usernameField.setText(String.valueOf(optionalUser.getUsername()));
+		emailField.setText(String.valueOf(optionalUser.getEmail()));
+		roleField.setText(String.valueOf(optionalUser.getRole()));
+		countField.setText(String.valueOf(optionalUser.getCount() + 1));
+	    }
+	    GridPane grid = new GridPane();
+	    grid.setHgap(10); grid.setVgap(10);
+	    grid.addRow(0, new Label("Kullanıcı Ad:"), usernameField);
+	    grid.addRow(1 new Label("Kullanıcı Email:"), emailField);
+	    grid.addRow(2, new Label("Kullanıcı Rol:"), roleField);
+	    grid.addRow(3, new Label("Kullanıcı Profili Görüntülenme Sayısı:"), countField);
+	    dialog.getDialogPane().setContent(grid);
+	    dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK);
+	    dialog.setResultConverter(dialogButton -> {
+		if (dialogButton == ButtonType.OK) {
+		    try {
+			Optional<UserDTO> updatedUser = UserDTO.builder()
+                            	.username(String.valueOf(usernameField.getText()))
+                            	.email(String.valueOf(emailField.getText()))
+                            	.password(String.valueOf(passwordField.getText()))
+			    	.role(ERole.fromString(String.valueOf(roleCombo.getValue())))
+			    	.count(Integer.valueOf(countField.getText()))
+                            	.build();
+			if (updatedUser != null && updatedUser.isValid()) {
+			    userDAO.update(optionalUser.getId(), updatedUser);
+			    showAlert("Bilgi", "Kullanıcı profili görüntülendi.", Alert.AlertType.INFORMATION);
+			    //switchToUserHomePane();
 			}
-			GridPane grid = new GridPane();
-			grid.setHgap(10); grid.setVgap(10);
-			grid.addRow(0, new Label("Kullanıcı Ad:"), usernameField);
-			grid.addRow(1 new Label("Kullanıcı Email:"), emailField);
-			grid.addRow(2, new Label("Kullanıcı Rol:"), roleField);
-			grid.addRow(3, new Label("Kullanıcı Profili Görüntülenme Sayısı:"), countField);
-			dialog.getDialogPane().setContent(grid);
-			dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK);
-			dialog.setResultConverter(dialogButton -> {
-				if (dialogButton == ButtonType.OK) {
-					try {
-						Optional<UserDTO> updatedUser = UserDTO.builder()
-                            .username(String.valueOf(usernameField.getText()))
-                            .email(String.valueOf(emailField.getText()))
-                            .password(String.valueOf(passwordField.getText()))
-							.role(ERole.fromString(String.valueOf(roleCombo.getValue())))
-							.count(Integer.valueOf(countField.getText()))
-                            .build();
-						if (updatedUser != null && updatedUser.isValid()) {
-							userDAO.update(optionalUser.getId(), updatedUser);
-							showAlert("Bilgi", "Kullanıcı profili görüntülendi.", Alert.AlertType.INFORMATION);
-							//switchToUserHomePane();
-						}
                     } catch (Exception e) {
                         showAlert("Hata", "Geçersiz veri!", Alert.AlertType.ERROR);
                     }
-				}
-			}
 		}
+	    });
+	}
     }
 
     @FXML
@@ -1068,13 +1068,13 @@ public class AdminController {
         // Daha önce alınmış bir yedek dosyadan veri geri yüklenecek
     }
 
-	// NOTLAR SAYFASINA GEÇİŞ
+    // NOTLAR SAYFASINA GEÇİŞ
     @FXML
     private void notebook(ActionEvent event) {
         switchToNotebookPane();
     }
 	
-	@FXML
+    @FXML
     private void switchToNotebookPane() {
         try {
             SceneHelper.switchScene(FXMLPath.NOTEBOOK + "?user=" + getLoginUserId().toString(), searchField, "NOTLAR");
@@ -1085,7 +1085,7 @@ public class AdminController {
         }
     }
 	
-	@FXML
+    @FXML
     private void switchToAdminPane() {
         try {
             SceneHelper.switchScene(FXMLPath.ADMIN + "?user" + getLoginUserId().toString(), searchField, "YÖNETİCİ");
