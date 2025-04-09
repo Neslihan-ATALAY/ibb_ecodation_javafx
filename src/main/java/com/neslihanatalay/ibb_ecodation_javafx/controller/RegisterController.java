@@ -112,7 +112,7 @@ public class RegisterController {
         TextField usernameField = new TextField();
         TextField emailField = new TextField();
         PasswordField passwordField = new PasswordField();
-		PasswordField passwordAgainField = new PasswordField();
+	PasswordField passwordAgainField = new PasswordField();
         ComboBox<String> roleCombo = new ComboBox<>();
         roleCombo.getItems().addAll(ERole.values());
         roleCombo.setValue(ERole.USER);
@@ -121,7 +121,7 @@ public class RegisterController {
             usernameField.setText(String.valueOf(existing.getUsername()));
             emailField.setText(String.valueOf(existing.getEmail()));
             passwordField.setText(existing.getPassword());
-			passwordAgainField.setText(existing.getPassword());
+	    passwordAgainField.setText(existing.getPassword());
             roleCombo.setValue(existing.getERole());
         }
 
@@ -130,7 +130,7 @@ public class RegisterController {
         grid.addRow(0, new Label("Kullanıcı Ad:"), usernameField);
         grid.addRow(1, new Label("Email:"), emailField);
         grid.addRow(2, new Label("Yeni Şifre:"), passwordField);
-		grid.addRow(3, new Label("Yeni Şifre Tekrar:"), passwordAgainField);
+	grid.addRow(3, new Label("Yeni Şifre Tekrar:"), passwordAgainField);
         grid.addRow(4, new Label("Kullanıcı Rol:"), roleCombo);
 
         dialog.getDialogPane().setContent(grid);
@@ -170,16 +170,16 @@ public class RegisterController {
 	//if(Integer.valueOf(LoginUserIdLabelField.getText()) != 0)
 		//Integer userId = Integer.valueOf(LoginUserIdLabelField.getText());
 	if (getLoginUserId() != 0) {
-		UserDTO selected = userDAO.findById(getLoginUserId());
-		if (selected == null) {
-			showAlert("Uyarı", "Lütfen sisteme tekrar giriş yapınız.", Alert.AlertType.WARNING);
-			return;
-		}
-		UserDTO updated = showProfileForm(selected);
-		if (updated != null && updated.isValid()) {
-			userDAO.update(selected.getId(), updated);
-			showAlert("Başarılı", "Kullanıcı profil kaydı güncellendi.", Alert.AlertType.INFORMATION);
-		}
+	    UserDTO selected = userDAO.findById(getLoginUserId());
+	    if (selected == null) {
+		showAlert("Uyarı", "Lütfen sisteme tekrar giriş yapınız.", Alert.AlertType.WARNING);
+		return;
+	    }
+	    UserDTO updated = showProfileForm(selected);
+	    if (updated != null && updated.isValid()) {
+		userDAO.update(selected.getId(), updated);
+		showAlert("Başarılı", "Kullanıcı profil kaydı güncellendi.", Alert.AlertType.INFORMATION);
+	    }
 	}
     }
 	
