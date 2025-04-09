@@ -49,10 +49,27 @@ public class NotebookDAO implements IDaoImplements<NotebookDTO>, ILogin<Notebook
     }
 
     @Override
-    public Optional<List<NotebookDTO>> list() {
+    public Optional<List<NotebookDTO>> list(int userId) {
         List<NotebookDTO> notebookDTOList = new ArrayList<>();
         String sql = "SELECT * FROM notebooktable ORDER BY pinned DESC";
         try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            ResultSet resultSet = preparedStatement.executeQuery();
+            while (resultSet.next()) {
+                notebookDTOList.add(mapToObjectDTO(resultSet));
+            }
+            return notebookDTOList.isEmpty() ? Optional.empty() : Optional.of(notebookDTOList);
+        } catch (Exception exception) {
+            exception.printStackTrace();
+        }
+        return Optional.empty();
+    }
+	
+    @Override
+    public Optional<List<NotebookDTO>> listByUserId(int userId) {
+        List<NotebookDTO> notebookDTOList = new ArrayList<>();
+        String sql = "SELECT * FROM notebooktable WHERE userId = ? ORDER BY pinned DESC";
+        try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+	    preparedStatement.setInteger(1, userId);
             ResultSet resultSet = preparedStatement.executeQuery();
             while (resultSet.next()) {
                 notebookDTOList.add(mapToObjectDTO(resultSet));
