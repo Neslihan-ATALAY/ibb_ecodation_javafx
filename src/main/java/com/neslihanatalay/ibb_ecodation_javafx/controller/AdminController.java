@@ -86,13 +86,14 @@ public class AdminController {
     @FXML private TableColumn<KdvDTO, String> descColumn;
     @FXML private TextField searchKdvField;
 	
-	@FXML private Label LoginUserIdLabelField;
-	@FXML private Label welcomeLabel;
+
+    @FXML private Label LoginUserIdLabelField;
+    @FXML private Label welcomeLabel;
     @FXML private Label clockLabel;
-	private static Integer loginUserId;
+    private static Integer loginUserId;
 	
-	public static Integer getLoginUserId() { return loginUserId; }
-	public static void setLoginUserId(Integer loginUserId) { this.loginUserId = loginUserId; }
+    public static Integer getLoginUserId() { return loginUserId; }
+    public static void setLoginUserId(Integer loginUserId) { this.loginUserId = loginUserId; }
 	
     @FXML
     public void initialize() {
@@ -106,14 +107,14 @@ public class AdminController {
         timeline.setCycleCount(Animation.INDEFINITE);
         timeline.play();
 		
-		// GİRİŞ YAPAN KULLANICININ ID NUMARASI LoginUserIdLabelField'e KAYDEDİLİR
-		//LoginUserIdLabelField.setText(Integer.valueOf(request.getParameter("user")));
-		setLoginUserId(Integer.valueOf(Request["user"].toString()));
-		LoginUserIdLabelField.setText(Request["user"].toString());
-		UserDTO userDTO = userDAO.findById(getLoginUserId());
-		if (userDTO.isPresent()) {
-			welcomeLabel.setText("Merhaba " + userDTO.getUsername() + ", Hoşgeldiniz");
-		}
+	// GİRİŞ YAPAN KULLANICININ ID NUMARASI LoginUserIdLabelField'e KAYDEDİLİR
+	//LoginUserIdLabelField.setText(Integer.valueOf(request.getParameter("user")));
+	setLoginUserId(Integer.valueOf(Request["user"].toString()));
+	LoginUserIdLabelField.setText(Request["user"].toString());
+	UserDTO userDTO = userDAO.findById(getLoginUserId());
+	if (userDTO.isPresent()) {
+	    welcomeLabel.setText("Merhaba " + userDTO.getUsername() + ", Hoşgeldiniz");
+	}
 
         idColumn.setCellValueFactory(new PropertyValueFactory<>("id"));
         usernameColumn.setCellValueFactory(new PropertyValueFactory<>("username"));
