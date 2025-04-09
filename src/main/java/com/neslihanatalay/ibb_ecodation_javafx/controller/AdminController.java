@@ -86,7 +86,6 @@ public class AdminController {
     @FXML private TableColumn<KdvDTO, String> descColumn;
     @FXML private TextField searchKdvField;
 	
-
     @FXML private Label LoginUserIdLabelField;
     @FXML private Label welcomeLabel;
     @FXML private Label clockLabel;
@@ -436,7 +435,7 @@ public class AdminController {
         }
     }
 
-	private void exportAsExcel(String content) {
+    private void exportAsExcel(String content) {
         try (Workbook wb = new XSSFWorkbook()) {
             Sheet sheet = wb.createSheet("KDV");
 
@@ -575,7 +574,7 @@ public class AdminController {
     private static class AddUserDialog extends Dialog<UserDTO> {
         private final TextField usernameField = new TextField();
         private final PasswordField passwordField = new PasswordField();
-		private final PasswordField passwordAgainField = new PasswordField();
+	private final PasswordField passwordAgainField = new PasswordField();
         private final TextField emailField = new TextField();
         private final ComboBox<String> roleComboBox = new ComboBox<>();
 
@@ -599,7 +598,7 @@ public class AdminController {
             grid.add(usernameField, 1, 0);
             grid.add(new Label("Şifre:"), 0, 1);
             grid.add(passwordField, 1, 1);
-			grid.add(new Label("Yeni Şifre:"), 0, 2);
+	    grid.add(new Label("Yeni Şifre:"), 0, 2);
             grid.add(passwordAgainField, 1, 2);
             grid.add(new Label("E-posta:"), 0, 3);
             grid.add(emailField, 1, 3);
@@ -613,18 +612,18 @@ public class AdminController {
 
             setResultConverter(dialogButton -> {
                 if (dialogButton == addButtonType) {
-					if (passwordField.equals(passwordAgainField)) {
-						return UserDTO.builder()
-							.username(usernameField.getText().trim())
-							.password(passwordField.getText().trim())
-							.email(emailField.getText().trim())
-							.role(ERole.valueOf(roleComboBox.getValue().name()))
-							.count(0)
-							.build();
-					} else {
-						showAlert("Uyarı", "Yeni Şifre ve Yeni Şifre Tekrar alanlarını lütfen aynı doldurunuz!", Alert.AlertType.WARNING);
-						return;
-					}
+		    if (passwordField.equals(passwordAgainField)) {
+			return UserDTO.builder()
+				.username(usernameField.getText().trim())
+				.password(passwordField.getText().trim())
+				.email(emailField.getText().trim())
+				.role(ERole.valueOf(roleComboBox.getValue().name()))
+				.count(0)
+				.build();
+		    } else {
+			showAlert("Uyarı", "Yeni Şifre ve Yeni Şifre Tekrar alanlarını lütfen aynı doldurunuz!", Alert.AlertType.WARNING);
+			return;
+		    }
                 }
                 return null;
             });
@@ -665,7 +664,7 @@ public class AdminController {
     private static class UpdateUserDialog extends Dialog<UserDTO> {
         private final TextField usernameField = new TextField();
         private final PasswordField passwordField = new PasswordField();
-		private final PasswordField passwordAgainField = new PasswordField();
+	private final PasswordField passwordAgainField = new PasswordField();
         private final TextField emailField = new TextField();
         private final ComboBox<ERole> roleComboBox = new ComboBox<>();
 
@@ -706,25 +705,25 @@ public class AdminController {
             getDialogPane().getButtonTypes().addAll(updateButtonType, ButtonType.CANCEL);
 
             setResultConverter(dialogButton -> {
-				if (dialogButton == updateButtonType) {
+		if (dialogButton == updateButtonType) {
                     try {
-						if (passwordField.equals(passwordAgainField)) {
-							return UserDTO.builder()
-								.username(usernameField.getText().trim())
-								.password(passwordField.getText().trim().isEmpty()
+			if (passwordField.equals(passwordAgainField)) {
+			    return UserDTO.builder()
+				.username(usernameField.getText().trim())
+				.password(passwordField.getText().trim().isEmpty()
                                     ? existingUser.getPassword()
                                     : passwordField.getText().trim())
-								.email(emailField.getText().trim())
-								.role(ERole.valueOf(roleComboBox.getValue().name()))
-								.count(existingUser.getCount())
-								.build();
-						} else {
-							showAlert("Uyarı", "Yeni Şifre ve Yeni Şifre Tekrar alanlarını lütfen aynı doldurunuz!", Alert.AlertType.WARNING);
-							return;
-						}
-					} catch(Exception e) {
-						showAlert("Hata", "Geçersiz veri!", Alert.AlertType.ERROR);
-					}
+				.email(emailField.getText().trim())
+				.role(ERole.valueOf(roleComboBox.getValue().name()))
+				.count(existingUser.getCount())
+				.build();
+			} else {
+			    showAlert("Uyarı", "Yeni Şifre ve Yeni Şifre Tekrar alanlarını lütfen aynı doldurunuz!", Alert.AlertType.WARNING);
+			    return;
+			}
+		    } catch(Exception e) {
+			showAlert("Hata", "Geçersiz veri!", Alert.AlertType.ERROR);
+		    }
                 }
                 return null;
             });
@@ -910,11 +909,11 @@ public class AdminController {
         // Bildirimleri gösteren popup veya panel açılacak
     }
 	
-	//PROFIL GÜNCELLEME DIALOG
-	private static class UpdateProfileDialog extends Dialog<UserDTO> {
+    //PROFIL GÜNCELLEME DIALOG
+    private static class UpdateProfileDialog extends Dialog<UserDTO> {
         private final TextField usernameField = new TextField();
         private final PasswordField passwordField = new PasswordField();
-		private final PasswordField passwordAgainField = new PasswordField();
+	private final PasswordField passwordAgainField = new PasswordField();
         private final TextField emailField = new TextField();
         private final ComboBox<ERole> roleComboBox = new ComboBox<>();
 
@@ -924,8 +923,8 @@ public class AdminController {
 
             usernameField.setText(existingUser.getUsername());
             emailField.setText(existingUser.getEmail());
-			passwordField.setText(existing.getPassword());
-			passwordAgainField.setText(existing.getPassword());
+	    passwordField.setText(existing.getPassword());
+	    passwordAgainField.setText(existing.getPassword());
             roleComboBox.getItems().addAll(ERole.values());
 
             try {
@@ -943,7 +942,7 @@ public class AdminController {
             grid.add(usernameField, 1, 0);
             grid.add(new Label("Yeni Şifre:"), 0, 1);
             grid.add(passwordField, 1, 1);
-			grid.add(new Label("Yeni Şifre Tekrar:"), 0, 2);
+	    grid.add(new Label("Yeni Şifre Tekrar:"), 0, 2);
             grid.add(passwordAgainField, 1, 2);
             grid.add(new Label("E-posta:"), 0, 3);
             grid.add(emailField, 1, 3);
@@ -958,33 +957,33 @@ public class AdminController {
             setResultConverter(dialogButton -> {
                 if (dialogButton == updateButtonType) {
                     try {
-						if (passwordField.equals(passwordAgainField)) {
-							return UserDTO.builder()
-								.username(usernameField.getText().trim())
-								.password(passwordField.getText().trim().isEmpty()
+			if (passwordField.equals(passwordAgainField)) {
+			    return UserDTO.builder()
+				.username(usernameField.getText().trim())
+				.password(passwordField.getText().trim().isEmpty()
                                     ? existingUser.getPassword()
                                     : passwordField.getText().trim())
-								.email(emailField.getText().trim())
-								.role(ERole.valueOf(roleComboBox.getValue().name()))
-								.count(existingUser.getCount())
-								.build();
-						} else {
-							showAlert("Uyarı", "Yeni Şifre ve Yeni Şifre Tekrar alanlarını lütfen aynı doldurunuz!", Alert.AlertType.WARNING);
-							return;
-						}
-					} catch(Exception e) {
-						showAlert("Hata", "Geçersiz veri!", Alert.AlertType.ERROR);
-					}
+				.email(emailField.getText().trim())
+				.role(ERole.valueOf(roleComboBox.getValue().name()))
+				.count(existingUser.getCount())
+				.build();
+			} else {
+			    showAlert("Uyarı", "Yeni Şifre ve Yeni Şifre Tekrar alanlarını lütfen aynı doldurunuz!", Alert.AlertType.WARNING);
+			    return;
+			}
+		    } catch(Exception e) {
+			showAlert("Hata", "Geçersiz veri!", Alert.AlertType.ERROR);
+		    }
                 }
                 return null;
             });
         }
     }
 
-	//PROFIL GÜNCELLEME
+    //PROFIL GÜNCELLEME
     @FXML
     public void updateProfile() {		
-		//if(Integer.valueOf(LoginUserIdLabelField.getText()) != 0) {
+	//if(Integer.valueOf(LoginUserIdLabelField.getText()) != 0) {
 			//Integer userId = Integer.valueOf(LoginUserIdLabelField.getText());
 		if (getLoginUserId() != 0) {
 			UserDTO selectedUser = userDAO.findById(getLoginUserId());
