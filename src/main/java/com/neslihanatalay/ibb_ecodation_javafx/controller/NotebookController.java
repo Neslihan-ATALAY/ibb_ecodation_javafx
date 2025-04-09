@@ -8,6 +8,8 @@ import com.neslihanatalay.ibb_ecodation_javafx.utils.ECategory;
 import com.neslihanatalay.ibb_ecodation_javafx.utils.FXMLPath;
 import com.neslihanatalay.ibb_ecodation_javafx.utils.SceneHelper;
 import com.neslihanatalay.ibb_ecodation_javafx.utils.SpecialColor;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -36,7 +38,12 @@ public class NotebookController {
     @FXML private TableColumn<NotebookDTO, String> usernameColumn;
     @FXML private TextField searchField;
 	
-    @FXML private LabelField LoginUserIdLabelField;
+	@FXML private Label welcomeLabel;
+    @FXML private Label LoginUserIdLabelField;
+	private static Integer loginUserId;
+	
+	public static Integer getLoginUserId() { return loginUserId; }
+	public static void setLoginUserId(Integer loginUserId) { this.loginUserId = loginUserId; }
 
     @FXML
     private void showAlert(String title, String message, Alert.AlertType type) {
@@ -66,9 +73,14 @@ public class NotebookController {
         searchField.textProperty().addListener((obs, oldVal, newVal) -> applyFilter());
         refreshTable();
 		
-		//LoginUserIdLabelField = Integer.valueOf(Request["LoginUserIdLabelField"]);
-		// GİRİŞ YAPAN KULLANICININ ID NUMARASI LoginUserIdLabelField INTEGER DEĞİŞKENE KAYDEDİLİR
-		LoginUserIdLabelField.setText(Integer.valueOf(LoginUserIdLabelField.getText()));
+		// GİRİŞ YAPAN KULLANICININ ID NUMARASI LoginUserIdLabelField'e KAYDEDİLİR
+		//LoginUserIdLabelField.setText(Integer.valueOf(request.getParameter("user")));
+		setLoginUserId(Integer.valueOf(Request["user"].toString()));
+		LoginUserIdLabelField.setText(Request["user"].toString());
+		UserDTO userDTO = userDAO.findById(getLoginUserId());
+		if (userDTO.isPresent()) {
+			welcomeLabel.setText("Merhaba " + userDTO.getUsername() + ", Hoşgeldiniz");
+		}
     }
 	
     @FXML
@@ -87,12 +99,17 @@ public class NotebookController {
         refreshTable();
     }
 
+	//NOTLAR LİSTESİ
     @FXML
     public void refreshTable() {
-        Optional<List<NotebookDTO>> list = NotebookDAO.list();
-        list.ifPresent(data -> notebookTable.setItems(FXCollections.observableArrayList(data)));
+		if (getLoginUserId() != 0) {
+			Integer UserId = getLoginUserId();
+			Optional<List<NotebookDTO>> list = NotebookDAO.listByUserId(UserId);
+			list.ifPresent(data -> notebookTable.setItems(FXCollections.observableArrayList(data)));
+		}
     }
 
+	// YENİ NOT
     @FXML
     private void addNotebook(ActionEvent event) {
         NotebookDTO newNotebook = showNotebookForm(null);
@@ -103,6 +120,7 @@ public class NotebookController {
         }
     }
 	
+	//NOT GÜNCELLEME
     @FXML
     private void updateNotebook(ActionEvent event) {
         NotebookDTO selected = notebookTable.getSelectionModel().getSelectedItem();
@@ -118,6 +136,7 @@ public class NotebookController {
         }
     }
 
+	//NOT SİLME
     @FXML
     private void deleteNotebook(ActionEvent event) {
         NotebookDTO selected = notebookTable.getSelectionModel().getSelectedItem();
@@ -135,7 +154,8 @@ public class NotebookController {
         }
     }
 
-    @FXML
+	//NOT DİALOG SAYFASI
+    //@FXML
     private NotebookDTO showNotebookForm(NotebookDTO existing) {
         Dialog<NotebookDTO> dialog = new Dialog<>();
         dialog.setTitle(existing == null ? "Yeni Not Ekle" : "Not Güncelle");
@@ -163,7 +183,6 @@ public class NotebookController {
 			} else {
 				usernameField.setValue("");
 			}
-			LoginUserIdLabelField.setText(Integer.valueOf(LoginUserIdLabelField.getText()));
         }
 
         GridPane grid = new GridPane();
@@ -186,11 +205,10 @@ public class NotebookController {
                             .title(titleField.getText())
                             .content(contentField.getText())
                             .createdDate(createdDateField.getValue().toLocalDate())
-                            .updatedDate(updatedDateField.getValue().toLocalDAte())
-                            .category(ECategory.valueOf(categoryComboBox.getValue().name()))
-                            //.category(categoryField.getValue())
+                            .updatedDate(updatedDateField.getValue().toLocalDate())
+                            .category(ECategory.valueOf(categoryField.getValue().name()))
                             .pinned(Boolean.parseBoolean(pinnedField.getValue()))
-							.userId((existing != null) ? (existing.getValue()) : (Integer.valueOf(LoginUserIdLabelField.getText())))
+							.userId((existing != null) ? (existing.getUserId()) : (getLoginUserId())
                             .build();
                 } catch (Exception e) {
                     showAlert("Hata", "Geçersiz veri!", Alert.AlertType.ERROR);
@@ -202,123 +220,4 @@ public class NotebookController {
         Optional<NotebookDTO> result = dialog.showAndWait();
         return result.orElse(null);
     }
-
-    /*
-    @FXML
-    public void addNotebook2(ActionEvent actionEvent) {
-        AddNotebookDialog dialog = new AddNotebookDialog();
-        Optional<NotebookDTO> result = dialog.showAndWait();
-        result.ifPresent(newNotebook -> {
-            if (newNotebook.getTitle().isEmpty() || newNotebook.getContent().isEmpty()) {
-                showAlert("Hata", "Tüm alanlar doldurulmalı!", Alert.AlertType.ERROR);
-                return;
-            }
-            Optional<NotebookDTO> createdNotebook = notebookDAO.create(newNotebook);
-            if (createdNotebook.isPresent()) {
-                showAlert("Başarılı", "Not başarıyla eklendi!", Alert.AlertType.INFORMATION);
-                //refreshTableNotebook();
-            } else {
-                showAlert("Hata", "Not eklenemedi!", Alert.AlertType.ERROR);
-            }
-        });
-    }
-
-    private static class AddNotebookDialog extends Dialog<NotebookDTO> {
-        private final private static class AddNotebookDialog extends Dialog<NotebookDTO> {
-            private final TextField titleField = new TextField();
-            private final TextField contentField = new TextField();
-            private final ComboBox<String> categoryComboBox = new ComboBox<>();
-            private final CheckBox<Boolean> pinnedCheckBox = new CheckBox<>();
-            private final DatePicker createdDateField = new DatePicker(LocalDate.now());
-            private final DatePicker updatedDateField = new DatePicker(LocalDate.now());
-
-            public AddNotebookDialog() {
-                setTitle("Yeni Not Ekle");
-                setHeaderText("Yeni Not Bilgilerini Girin");
-
-                //roleComboBox.getItems().addAll("USER", "ADMIN", "MODERATOR");
-                //roleComboBox.setValue("USER");
-
-                ComboBox<ECategory> categoryComboBox = new ComboBox<>();
-                categoryComboBox.getItems().addAll(ECategory.values());
-                categoryComboBox.setValue(ECategory.PERSONAL);
-                pinnedCheckBox.setValue("Notu Sabitle");
-
-                LocalDateTime now = LocalDateTime.now();
-                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss");
-                String stringNow = now.format(formatter);
-
-                GridPane grid = new GridPane();
-                grid.setHgap(10);
-                grid.setVgap(10);
-                grid.setPadding(new Insets(20, 150, 10, 10));
-
-                grid.add(new Label("Başlık:"), 0, 0);
-                grid.add(titleField, 1, 0);
-                grid.add(new Label("İçerik:"), 0, 1);
-                grid.add(contentField, 1, 1);
-                grid.add(new Label("Not Tarihi:"), 0, 2);
-                grid.add(createdDateField, 1, 2);
-                grid.add(new Label("Not Güncellenme Tarihi:"), 0, 3);
-                grid.add(updatedDateField, 1, 3);
-                grid.add(new Label("Kategori:"), 0, 4);
-                grid.add(categoryComboBox, 1, 4);
-                grid.add(new Label("Not Sabit mi?:"), 0, 5);
-                grid.add(pinnedCheckBox, 1, 5);
-
-                getDialogPane().setContent(grid);
-
-                ButtonType addButtonType = new ButtonType("Ekle", ButtonBar.ButtonData.OK_DONE);
-                getDialogPane().getButtonTypes().addAll(addButtonType, ButtonType.CANCEL);
-
-                setResultConverter(dialogButton -> {
-                    if (dialogButton == addButtonType) {
-                        return NotebookDTO.builder()
-                                .title(titleField.getText().trim())
-                                .content(contentField.getText().trim())
-                                .createdDate(createdDateField.getValue())
-                                .updatedDate(updatedDateField.getValue())
-                                .category(ECategory.valueOf(categoryComboBox.getValue().name()))
-                                //.category(categoryComboBox.getValue())
-                                .pinned(pinnedCheckBox.getValue())
-                                .build();
-                    }
-                    return null;
-                });
-            }
-        }
-    }
-
-    @FXML
-    private void addNotebookOld(ActionEvent event) {
-        String title = titleField.getText().trim();
-        String content = contentField.getText().trim();
-        String category = categoryField.getSelected();
-		Boolean pinned = pinnedField.getValue();
-		LocalDateTime createdDate, updatedDate;
-
-        if (title.isEmpty() || content.isEmpty()) {
-            showAlert("Hata", "Lütfen başlık ve içerik alanlarını doldurun", Alert.AlertType.ERROR);
-            return;
-        }
-
-        NotebookDTO notebookDTO = NotebookDTO.builder()
-                .title(title)
-                .content(content)
-				.createdDate(createdDate)
-				.updatedDate(updatedDate)
-                .category(category)
-                .pinned(pinned)
-				//.userDTO(userDTO)
-                .build();
-
-        Optional<NotebookDTO> createdNotebook = notebookDAO.create(notebookDTO);
-        if (createdNotebook.isPresent()) {
-            showAlert("Başarılı", "Başarılı", Alert.AlertType.INFORMATION);
-            switchToNotebookPane();
-        } else {
-            showAlert("Hata", "Başarısız", Alert.AlertType.ERROR);
-        }
-    }
-     */
 }
