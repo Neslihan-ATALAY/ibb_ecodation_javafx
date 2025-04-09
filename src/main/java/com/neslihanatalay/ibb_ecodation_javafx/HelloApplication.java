@@ -39,7 +39,7 @@ public class HelloApplication extends Application {
             password VARCHAR(255) NOT NULL,
             email VARCHAR(100) NOT NULL UNIQUE,
             role VARCHAR(50) DEFAULT 'USER'
-			count INT DEFAULT '0'
+	    count INT DEFAULT '0'
             );
             """;
             stmt.execute(createUserTableSQL);
@@ -59,19 +59,17 @@ public class HelloApplication extends Application {
             """;
             stmt.execute(createKdvTableSQL);
 			
-			String createNotebookTableSQL = """
+	    String createNotebookTableSQL = """
             CREATE TABLE IF NOT EXISTS notebooktable (
             id INT AUTO_INCREMENT PRIMARY KEY,
             title VARCHAR(80),
             content VARCHAR(MAX),
             createdDate DATE,
-			updateddDate DATE,
-			category VARCHAR(50) DEFAULT 'PERSONAL',
-			pinned BIT,
-			userId INT,
-			CONSTRAINT FK_NOTEBOOK_USER
-			FOREIGN KEY (userId) 
-			REFERENCES usertable(id)			
+	    updateddDate DATE,
+	    category VARCHAR(50) DEFAULT 'PERSONAL',
+	    pinned BIT,
+	    userId INT,
+	    CONSTRAINT FK_NOTEBOOK_USER FOREIGN KEY (userId) REFERENCES usertable(id)			
             );
             """;
             stmt.execute(createNotebookTableSQL);
@@ -87,7 +85,7 @@ public class HelloApplication extends Application {
             ps.setString(2, BCrypt.hashpw("root", BCrypt.gensalt()));
             ps.setString(3, "atalay.neslihan.2015@gmail.com");
             ps.setString(4, "USER");
-			ps.setInt(5, 0);
+	    ps.setInt(5, 0);
             ps.executeUpdate();
 
             // 2. kullanıcı
@@ -95,7 +93,7 @@ public class HelloApplication extends Application {
             ps.setString(2, BCrypt.hashpw("root", BCrypt.gensalt()));
             ps.setString(3, "admin@gmail.com");
             ps.setString(4, "ADMIN");
-			ps.setInt(5, 0);
+	    ps.setInt(5, 0);
             ps.executeUpdate();
 
             // 3. kullanıcı
@@ -103,7 +101,7 @@ public class HelloApplication extends Application {
             ps.setString(2, BCrypt.hashpw("root", BCrypt.gensalt()));
             ps.setString(3, "root@gmail.com");
             ps.setString(4, "ADMIN");
-			ps.setInt(5, 0);
+	    ps.setInt(5, 0);
             ps.executeUpdate();
         }
 
