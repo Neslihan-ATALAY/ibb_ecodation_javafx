@@ -1,9 +1,13 @@
 package com.neslihanatalay.ibb_ecodation_javafx.utils;
 
+import com.neslihanatalay.ibb_ecodation_javafx.dao.ResourceBundleBinding; 
+
+private final ResourceBundleBinding resourceBundleBinding = new ResourceBundleBinding(); 
+
 public enum ERole {
-    USER("Kullanıcı"),
-    MODERATOR("Moderatör"),
-    ADMIN("Yönetici");
+    USER(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("kullanıcı"),
+    MODERATOR(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("moderator"),
+    ADMIN(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("yönetici");
 
     private final String description;
 
@@ -19,7 +23,7 @@ public enum ERole {
         try {
             return ERole.valueOf(role.toUpperCase());
         } catch (IllegalArgumentException e) {
-            throw new RuntimeException("Geçersiz rol: " + role);
+            throw new RuntimeException(role);
         }
     }
 
