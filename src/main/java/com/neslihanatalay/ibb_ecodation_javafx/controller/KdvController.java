@@ -18,12 +18,12 @@ import java.util.Optional;
 public class KdvController {
 
     private final KdvDAO kdvDAO;
-	private final ResourceBundleBinding resourceBundleBinding;
+    private final ResourceBundleBinding resourceBundleBinding;
 	
-	public KdvController() {
-		kdvDAO = new KdvDAO();
-		resourceBundleBinding = new ResourceBundleBinding();
-	}
+    public KdvController() {
+	kdvDAO = new KdvDAO();
+	resourceBundleBinding = new ResourceBundleBinding();
+    }
 
     @FXML private TableView<KdvDTO> kdvTable;
     @FXML private TableColumn<KdvDTO, Integer> idColumn;
@@ -35,31 +35,31 @@ public class KdvController {
     @FXML private TableColumn<KdvDTO, LocalDate> dateColumn;
     @FXML private TableColumn<KdvDTO, String> descColumn;
     @FXML private TextField searchField;
-	@FXML private ComboBox<Locale> languageSelectComboBox;
+    @FXML private ComboBox<Locale> languageSelectComboBox;
 	
-	private static final String RESOURCE_NAME = Resources.class.getTypeName();
+    private static final String RESOURCE_NAME = Resources.class.getTypeName();
 	
-	private static final ObservableResourceFactory RESOURCE_FACTORY = new ObservableResourceFactory();
+    private static final ObservableResourceFactory RESOURCE_FACTORY = new ObservableResourceFactory();
 	
-	static {
-		RESOURCE_FACTORY.setResources(ResourceBundle.getBundle(RESOURCE_NAME));
-	}
+    static {
+	RESOURCE_FACTORY.setResources(ResourceBundle.getBundle(RESOURCE_NAME));
+    }
 
     @FXML
     public void initialize() {
-		languageSelectComboBox = new ComboBox<>();
-		languageSelectComboBox.getItems().add(null);
+	languageSelectComboBox = new ComboBox<>();
+	languageSelectComboBox.getItems().add(null);
         languageSelectComboBox.getItems().addAll(Locale.ENGLISH, Locale.TURKISH);
         languageSelectComboBox.setValue(Locale.TURKISH);
-		languageSelectComboBox.setCellFactory(lv -> new LocaleCell());
-		languageSelectComboBox.setButtonCell(new LocaleCell());
+	languageSelectComboBox.setCellFactory(lv -> new LocaleCell());
+	languageSelectComboBox.setButtonCell(new LocaleCell());
 		
-		//languageSelectComboBox.getSelectionModel().selectedIndexProperty().addListener((obs, oldValue, newValue) -> {		
-		languageSelectComboBox.valueProperty().addListener((obs, oldValue, newValue) -> {
-			if (newValue != null) {
-				RESOURCE_FACTORY.setResources(ResourceBundle.getBundle(RESOURCE_NAME, newValue));
-			}
-		});
+	//languageSelectComboBox.getSelectionModel().selectedIndexProperty().addListener((obs, oldValue, newValue) -> {		
+	languageSelectComboBox.valueProperty().addListener((obs, oldValue, newValue) -> {
+            if (newValue != null) {
+		RESOURCE_FACTORY.setResources(ResourceBundle.getBundle(RESOURCE_NAME, newValue));
+	    }
+	});
 		
         idColumn.setCellValueFactory(new PropertyValueFactory<>("id"));
         amountColumn.setCellValueFactory(new PropertyValueFactory<>("amount"));
@@ -74,17 +74,17 @@ public class KdvController {
         refreshTable();
     }
 	
-	public static class LocaleCell extends ListCell<Locale> {
-		@Override
-		public void updateItem(Locale locale, boolean empty) {
-			super.updateItem(locale, empty);
-			if (empty) {
-				setText(null);
-			} else {
-				setText(locale.getDisplayLanguage(locale));
-			}
-		}
+    public static class LocaleCell extends ListCell<Locale> {
+	@Override
+	public void updateItem(Locale locale, boolean empty) {
+            super.updateItem(locale, empty);
+	    if (empty) {
+		setText(null);
+	    } else {
+		setText(locale.getDisplayLanguage(locale));
+	    }
 	}
+    }
 
     public void refreshTable() {
         Optional<List<KdvDTO>> list = kdvDAO.list();
@@ -95,8 +95,8 @@ public class KdvController {
         String keyword = searchField.getText().trim().toLowerCase();
         Optional<List<KdvDTO>> all = kdvDAO.list();
         List<KdvDTO> filtered = all.orElse(List.of()).stream()
-                .filter(kdv -> kdv.getReceiptNumber().toLowerCase().contains(keyword))
-                .toList();
+            .filter(kdv -> kdv.getReceiptNumber().toLowerCase().contains(keyword))
+            .toList();
         kdvTable.setItems(FXCollections.observableArrayList(filtered));
     }
 
@@ -113,7 +113,7 @@ public class KdvController {
             kdvDAO.create(newKdv);
             refreshTable();
             //showAlert("Bilgi", "KDV kaydı eklendi.", Alert.AlertType.INFORMATION);
-			showAlert(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("bilgi"), resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("yenikdv"), Alert.AlertType.INFORMATION);
+	    showAlert(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("bilgi"), resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("yenikdv"), Alert.AlertType.INFORMATION);
         }
     }
 
@@ -122,7 +122,7 @@ public class KdvController {
         KdvDTO selected = kdvTable.getSelectionModel().getSelectedItem();
         if (selected == null) {
             //showAlert("Uyarı", "Güncellenecek bir kayıt seçin.", Alert.AlertType.WARNING);
-			showAlert(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("uyarı"), resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("seçgüncellenecek"), Alert.AlertType.WARNING);
+	    showAlert(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("uyarı"), resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("seçgüncellenecek"), Alert.AlertType.WARNING);
             return;
         }
         KdvDTO updated = showKdvForm(selected);
@@ -130,7 +130,7 @@ public class KdvController {
             kdvDAO.update(selected.getId(), updated);
             refreshTable();
             //showAlert("Bilgi", "KDV kaydı güncellendi.", Alert.AlertType.INFORMATION);
-			showAlert(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("bilgi"), resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("kdvgüncelleme"), Alert.AlertType.INFORMATION);
+	    showAlert(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("bilgi"), resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("kdvgüncelleme"), Alert.AlertType.INFORMATION);
         }
     }
 
@@ -139,19 +139,19 @@ public class KdvController {
         KdvDTO selected = kdvTable.getSelectionModel().getSelectedItem();
         if (selected == null) {
             //showAlert("Uyarı", "Silinecek bir kayıt seçin.", Alert.AlertType.WARNING);
-			showAlert(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("uyarı"), resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("seçsilinecek"), Alert.AlertType.WARNING);
+	    showAlert(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("uyarı"), resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("seçsilinecek"), Alert.AlertType.WARNING);
             return;
         }
         //Alert confirm = new Alert(Alert.AlertType.CONFIRMATION, "Silmek istiyor musunuz?", ButtonType.OK, ButtonType.CANCEL);
-		Alert confirm = new Alert(Alert.AlertType.CONFIRMATION, resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("onaylasilme"), ButtonType.OK, ButtonType.CANCEL);
+	Alert confirm = new Alert(Alert.AlertType.CONFIRMATION, resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("onaylasilme"), ButtonType.OK, ButtonType.CANCEL);
         //confirm.setHeaderText("Kayıt: " + selected.getReceiptNumber());
-		confirm.setHeaderText(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("kayıt") + selected.getReceiptNumber());
+	confirm.setHeaderText(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("kayıt") + selected.getReceiptNumber());
         Optional<ButtonType> result = confirm.showAndWait();
         if (result.isPresent() && result.get() == ButtonType.OK) {
             kdvDAO.delete(selected.getId());
             refreshTable();
             //showAlert("Silindi", "KDV kaydı silindi.", Alert.AlertType.INFORMATION);
-			showAlert(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("silme"), resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("kdvsilme"), Alert.AlertType.INFORMATION);			
+	    showAlert(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("silme"), resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("kdvsilme"), Alert.AlertType.INFORMATION);			
         }
     }
 
@@ -165,7 +165,7 @@ public class KdvController {
     private KdvDTO showKdvForm(KdvDTO existing) {
         Dialog<KdvDTO> dialog = new Dialog<>();
         //dialog.setTitle(existing == null ? "Yeni KDV Ekle" : "KDV Güncelle");
-		dialog.setTitle(existing == null ? resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("yenikdvekle") : resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("kdvgüncelle"));
+	dialog.setTitle(existing == null ? resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("yenikdvekle") : resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("kdvgüncelle"));
 
         TextField amountField = new TextField();
         TextField rateField = new TextField();
@@ -188,17 +188,17 @@ public class KdvController {
         GridPane grid = new GridPane();
         grid.setHgap(10); grid.setVgap(10);
         //grid.addRow(0, new Label("Tutar"), amountField);
-		grid.addRow(0, new Label(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("tutar")), amountField);
+	grid.addRow(0, new Label(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("tutar")), amountField);
         //grid.addRow(1, new Label("KDV Oranı (%)"), rateField);
-		grid.addRow(1, new Label(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("kdvoran")), rateField);
+	grid.addRow(1, new Label(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("kdvoran")), rateField);
         //grid.addRow(2, new Label("Fiş No"), receiptField);
-		grid.addRow(2, new Label(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("fişno")), receiptField);
+	grid.addRow(2, new Label(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("fişno")), receiptField);
         //grid.addRow(3, new Label("Tarih"), datePicker);
-		grid.addRow(3, new Label(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("tarih")), datePicker);
+	grid.addRow(3, new Label(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("tarih")), datePicker);
         //grid.addRow(4, new Label("Açıklama"), descField);
-		grid.addRow(4, new Label(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("açıklama")), descField);
+	grid.addRow(4, new Label(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("açıklama")), descField);
         //grid.addRow(5, new Label("Format"), exportCombo);
-		grid.addRow(5, new Label(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("format")), exportCombo);
+	grid.addRow(5, new Label(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("format")), exportCombo);
 
         dialog.getDialogPane().setContent(grid);
         dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
@@ -216,7 +216,7 @@ public class KdvController {
                             .build();
                 } catch (Exception e) {
                     //showAlert("Hata", "Geçersiz veri girdiniz!", Alert.AlertType.ERROR);
-					showAlert(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("hata"), resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("geçersizveri"), Alert.AlertType.ERROR);
+		    showAlert(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("hata"), resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("geçersizveri"), Alert.AlertType.ERROR);
                 }
             }
             return null;
