@@ -14,7 +14,7 @@
                 <Button text="Not Defteri" onAction="#notebook" style="-fx-background-color: #139c12; -fx-text-fill: white; -fx-background-radius: 8;" />
                 <Pane HBox.hgrow="ALWAYS" />
                 <Button text="Profil" onAction="#showProfile" style="-fx-background-color: #8e44ad; -fx-text-fill: white; -fx-background-radius: 8;" />
-                <ComboBox fx:id="languageSelectComboBox" promptText="Select Language"
+                <ComboBox fx:id="languageSelectComboBox" promptText="Dil Seçiniz"
                           style="-fx-font-weight: bold; -fx-padding: 8; -fx-background-radius: 8; -fx-border-color: #ccc; -fx-border-radius: 8;" />
                 <Button text="Çıkış" onAction="#logout" style="-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-background-radius: 8;" />
                 <Label fx:id="clockLabel" style="-fx-text-fill: white;" />
