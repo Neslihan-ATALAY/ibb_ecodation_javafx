@@ -11,6 +11,8 @@
         <HBox spacing="10" padding="10">
 	    <Label fx:id="welcomeLabel"/>
 	    <Label fx:id="LoginUserIdLabelField" visible="false" />
+            <ComboBox fx:id="languageSelectComboBox" promptText="Dil Seçiniz"
+                style="-fx-font-weight: bold; -fx-padding: 8; -fx-background-radius: 8; -fx-border-color: #ccc; -fx-border-radius: 8;" />
             <Label text="Ara (Not Başlığı):" />
             <TextField fx:id="searchField" promptText="Not giriniz..." />
             <Button text="Filtreyi Temizle" onAction="#clearFilters" />
