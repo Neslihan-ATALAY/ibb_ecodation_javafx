@@ -2,6 +2,14 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
+<BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="com.neslihanatalay.ibb_ecodation_javafx.controller.RegisterController">
+    <top>
+        <HBox spacing="10" padding="10">
+            <ComboBox fx:id="languageSelectComboBox" promptText="Dil Seçiniz"
+                style="-fx-font-weight: bold; -fx-padding: 8; -fx-background-radius: 8; -fx-border-color: #ccc; -fx-border-radius: 8;" />
+        </HBox>
+    </top>
+</BorderPane>
 <GridPane
         xmlns:fx="http://javafx.com/fxml"
         fx:controller="com.neslihanatalay.ibb_ecodation_javafx.controller.RegisterController"
