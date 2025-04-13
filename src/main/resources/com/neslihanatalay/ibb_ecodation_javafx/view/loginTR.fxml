@@ -37,4 +37,6 @@
             onAction="#switchToRegister"
             style="-fx-font-size: 18px; -fx-background-color: #2a9df4; -fx-text-fill: white;"/>
 
+    <ComboBox fx:id="languageSelectComboBox" promptText="Select Language"
+            style="-fx-font-weight: bold; -fx-padding: 8; -fx-background-radius: 8; -fx-border-color: #ccc; -fx-border-radius: 8;" />
 </VBox>
