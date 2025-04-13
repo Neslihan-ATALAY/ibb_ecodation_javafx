@@ -1,9 +1,17 @@
 package com.neslihanatalay.ibb_ecodation_javafx.utils;
 
+import com.neslihanatalay.ibb_ecodation_javafx.dao.ResourceBundleBinding; 
+
+private final ResourceBundleBinding resourceBundleBinding = new ResourceBundleBinding(); 
+
+//private static final ObservableResourceFactory RESOURCE_FACTORY = new ObservableResourceFactory(); 
+
+//static { RESOURCE_FACTORY.setResources(ResourceBundle.getBundle(RESOURCE_NAME)); }
+
 public enum ECategory {
-    PERSONAL("Kişisel"),
-    JOB("İş"),
-    SCHOOL("Okul");
+    PERSONAL(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("kişisel"),
+    JOB(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("iş"),
+    SCHOOL(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("okul");
 
     private final String description;
 
@@ -19,7 +27,7 @@ public enum ECategory {
         try {
             return ECategory.valueOf(category.toUpperCase());
         } catch (IllegalArgumentException e) {
-            throw new RuntimeException("❌ Geçersiz kategori: " + category);
+            throw new RuntimeException(category);
         }
     }
 
