@@ -1,1 +1,44 @@
 
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="com.neslihanatalay.ibb_ecodation_javafx.controller.KdvController">
+
+    <!-- ÜST: Arama ve Filtre -->
+    <top>
+        <HBox spacing="10" padding="10">
+            <Label text="Search (Receipt Number):" />
+            <TextField fx:id="searchField" promptText="Enter Receipt Number" />
+            <Button text="Clear Filter" onAction="#clearFilters" />
+        </HBox>
+    </top>
+
+    <!-- ORTA: Tablo -->
+    <center>
+        <TableView fx:id="kdvTable">
+            <columns>
+                <TableColumn fx:id="idColumn" text="ID" />
+                <TableColumn fx:id="amountColumn" text="Total" />
+                <TableColumn fx:id="kdvRateColumn" text="KDV (%)" />
+                <TableColumn fx:id="kdvAmountColumn" text="KDV Total" />
+                <TableColumn fx:id="totalAmountColumn" text="General Total" />
+                <TableColumn fx:id="receiptColumn" text="Receipt Number" />
+                <TableColumn fx:id="dateColumn" text="Date" />
+                <TableColumn fx:id="descColumn" text="Description" />
+            </columns>
+        </TableView>
+    </center>
+
+    <!-- ALT: Butonlar -->
+    <bottom>
+        <HBox spacing="10" padding="10" alignment="CENTER_RIGHT">
+            <Button text="Register KDV" onAction="#addKdv" />
+            <Button text="Update" onAction="#updateKdv" />
+            <Button text="Remove" onAction="#deleteKdv" />
+        </HBox>
+    </bottom>
+
+</BorderPane>
