@@ -62,15 +62,15 @@ public class AdminController {
 
     private final UserDAO userDAO;
     private final KdvDAO kdvDAO;
-	private final ResourceBundleBinding resourceBundleBinding;
+    private final ResourceBundleBinding resourceBundleBinding;
 
     public AdminController() {
         userDAO = new UserDAO();
         kdvDAO = new KdvDAO();
-		resourceBundleBinding = new ResourceBundleBinding();
+	resourceBundleBinding = new ResourceBundleBinding();
     }
 	
-	@FXML private ComboBox<Locale> languageSelectComboBox;
+    @FXML private ComboBox<Locale> languageSelectComboBox;
 
     @FXML private TableView<UserDTO> userTable;
     @FXML private TableColumn<UserDTO, Integer> idColumn;
@@ -92,56 +92,56 @@ public class AdminController {
     @FXML private TableColumn<KdvDTO, String> descColumn;
     @FXML private TextField searchKdvField;
 	
-	@FXML private Label LoginUserIdLabelField;
-	@FXML private Label welcomeLabel;
+    @FXML private Label LoginUserIdLabelField;
+    @FXML private Label welcomeLabel;
     @FXML private Label clockLabel;
-	private static Integer loginUserId;
+    private static Integer loginUserId;
 	
-	public static Integer getLoginUserId() { return loginUserId; }
-	public static void setLoginUserId(Integer loginUserId) { this.loginUserId = loginUserId; }
+    public static Integer getLoginUserId() { return loginUserId; }
+    public static void setLoginUserId(Integer loginUserId) { this.loginUserId = loginUserId; }
 	
-	private static final String RESOURCE_NAME = Resources.class.getTypeName();
+    private static final String RESOURCE_NAME = Resources.class.getTypeName();
 	
-	private static final ObservableResourceFactory RESOURCE_FACTORY = new ObservableResourceFactory();
+    private static final ObservableResourceFactory RESOURCE_FACTORY = new ObservableResourceFactory();
 	
-	static {
-		RESOURCE_FACTORY.setResources(ResourceBundle.getBundle(RESOURCE_NAME));
-	}
+    static {
+	RESOURCE_FACTORY.setResources(ResourceBundle.getBundle(RESOURCE_NAME));
+    }
 	
     @FXML
     public void initialize() {
         Timeline timeline = new Timeline(
-                new KeyFrame(Duration.seconds(1), e -> {
-                    LocalDateTime now = LocalDateTime.now();
-                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss");
-                    clockLabel.setText(now.format(formatter));
-                })
+            new KeyFrame(Duration.seconds(1), e -> {
+                LocalDateTime now = LocalDateTime.now();
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss");
+                clockLabel.setText(now.format(formatter));
+            })
         );
         timeline.setCycleCount(Animation.INDEFINITE);
         timeline.play();
 		
-		languageSelectComboBox = new ComboBox<>();
-		languageSelectComboBox.getItems().add(null);
+	languageSelectComboBox = new ComboBox<>();
+	languageSelectComboBox.getItems().add(null);
         languageSelectComboBox.getItems().addAll(Locale.ENGLISH, Locale.TURKISH);
         languageSelectComboBox.setValue(Locale.TURKISH);
-		languageSelectComboBox.setCellFactory(lv -> new LocaleCell());
-		languageSelectComboBox.setButtonCell(new LocaleCell());
+	languageSelectComboBox.setCellFactory(lv -> new LocaleCell());
+	languageSelectComboBox.setButtonCell(new LocaleCell());
 		
-		//languageSelectComboBox.getSelectionModel().selectedIndexProperty().addListener((obs, oldValue, newValue) -> {		
-		languageSelectComboBox.valueProperty().addListener((obs, oldValue, newValue) -> {
-			if (newValue != null) {
-				RESOURCE_FACTORY.setResources(ResourceBundle.getBundle(RESOURCE_NAME, newValue));
-			}
-		});
+	//languageSelectComboBox.getSelectionModel().selectedIndexProperty().addListener((obs, oldValue, newValue) -> {		
+	languageSelectComboBox.valueProperty().addListener((obs, oldValue, newValue) -> {
+	    if (newValue != null) {
+		RESOURCE_FACTORY.setResources(ResourceBundle.getBundle(RESOURCE_NAME, newValue));
+	    }
+	});
 		
-		// GİRİŞ YAPAN KULLANICININ ID NUMARASI LoginUserIdLabelField'e KAYDEDİLİR
-		setLoginUserId(Integer.valueOf(request().getQueryString("kullanıcı").toString()));
-		LoginUserIdLabelField.setText(request().getQueryString("kullanıcı").toString());
-		UserDTO userDTO = userDAO.findById(getLoginUserId());
-		if (userDTO.isPresent()) {
-			//welcomeLabel.setText(" Merhaba " + userDTO.getUsername() + " Hoşgeldiniz ");
-			welcomeLabel.setText(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("merhaba") + userDTO.getUsername() + resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("hoşgeldiniz"));
-		}
+	// GİRİŞ YAPAN KULLANICININ ID NUMARASI LoginUserIdLabelField'e KAYDEDİLİR
+	setLoginUserId(Integer.valueOf(request().getQueryString("kullanıcı").toString()));
+	LoginUserIdLabelField.setText(request().getQueryString("kullanıcı").toString());
+	UserDTO userDTO = userDAO.findById(getLoginUserId());
+	if (userDTO.isPresent()) {
+	    //welcomeLabel.setText(" Merhaba " + userDTO.getUsername() + " Hoşgeldiniz ");
+		welcomeLabel.setText(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("merhaba") + userDTO.getUsername() + resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("hoşgeldiniz"));
+	}
 
         idColumn.setCellValueFactory(new PropertyValueFactory<>("id"));
         usernameColumn.setCellValueFactory(new PropertyValueFactory<>("username"));
@@ -180,17 +180,17 @@ public class AdminController {
         refreshKdvTable();
     }
 	
-	public static class LocaleCell extends ListCell<Locale> {
-		@Override
-		public void updateItem(Locale locale, boolean empty) {
-			super.updateItem(locale, empty);
-			if (empty) {
-				setText(null);
-			} else {
-				setText(locale.getDisplayLanguage(locale));
-			}
-		}
-	}
+    public static class LocaleCell extends ListCell<Locale> {
+	@Override
+	public void updateItem(Locale locale, boolean empty) {
+	    super.updateItem(locale, empty);
+	    if (empty) {
+	        setText(null);
+	    } else {
+	        setText(locale.getDisplayLanguage(locale));
+	    }
+        }
+    }
 
     private void applyFilters() {
         String keyword = searchField.getText().toLowerCase().trim();
@@ -200,17 +200,17 @@ public class AdminController {
         List<UserDTO> fullList = optionalUsers.orElseGet(List::of);
 
         List<UserDTO> filteredList = fullList.stream()
-                .filter(user -> {
-                    boolean matchesKeyword = keyword.isEmpty() ||
-                            user.getUsername().toLowerCase().contains(keyword) ||
-                            user.getEmail().toLowerCase().contains(keyword) ||
-                            user.getRole().getDescription().toLowerCase().contains(keyword);
+            .filter(user -> {
+                boolean matchesKeyword = keyword.isEmpty() ||
+                    user.getUsername().toLowerCase().contains(keyword) ||
+                    user.getEmail().toLowerCase().contains(keyword) ||
+                    user.getRole().getDescription().toLowerCase().contains(keyword);
 
                     boolean matchesRole = (selectedRole == null) || user.getRole() == selectedRole;
 
                     return matchesKeyword && matchesRole;
                 })
-                .toList();
+            .toList();
 
         userTable.setItems(FXCollections.observableArrayList(filteredList));
     }
