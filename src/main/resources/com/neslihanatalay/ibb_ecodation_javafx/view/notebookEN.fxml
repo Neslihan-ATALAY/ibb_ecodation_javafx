@@ -11,6 +11,8 @@
         <HBox spacing="10" padding="10">
 	    <Label fx:id="welcomeLabel"/>
 	    <Label fx:id="LoginUserIdLabelField" visible="false" />
+            <ComboBox fx:id="languageSelectComboBox" promptText="Dil Seçiniz"
+                style="-fx-font-weight: bold; -fx-padding: 8; -fx-background-radius: 8; -fx-border-color: #ccc; -fx-border-radius: 8;" />
             <Label text="Search (Note Title):" />
             <TextField fx:id="searchField" promptText="Enter note..." />
             <Button text="Clear Filter" onAction="#clearFilters" />
@@ -24,7 +26,7 @@
                 <TableColumn fx:id="idColumn" text="ID" />
                 <TableColumn fx:id="titleColumn" text="Title" />
                 <TableColumn fx:id="contentColumn" text="Content" />
-				        <TableColumn fx:id="createdDateColumn" text="Create Date" />
+		<TableColumn fx:id="createdDateColumn" text="Create Date" />
                 <TableColumn fx:id="updatedDateColumn" text="Update Date" />
                 <TableColumn fx:id="categoryColumn" text="Category" />
                 <TableColumn fx:id="pinnedColumn" text="Pin" />
