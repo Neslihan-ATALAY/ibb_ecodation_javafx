@@ -2,6 +2,7 @@
 package com.neslihanatalay.ibb_ecodation_javafx.controller;
 
 import com.neslihanatalay.ibb_ecodation_javafx.dao.KdvDAO;
+import com.neslihanatalay.ibb_ecodation_javafx.dao.ResourceBundleBinding;
 import com.neslihanatalay.ibb_ecodation_javafx.dao.UserDAO;
 import com.neslihanatalay.ibb_ecodation_javafx.dto.KdvDTO;
 import com.neslihanatalay.ibb_ecodation_javafx.dto.UserDTO;
@@ -51,6 +52,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Locale;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
@@ -58,13 +60,17 @@ import java.util.Properties;
 
 public class AdminController {
 
-    private UserDAO userDAO;
-    private KdvDAO kdvDAO;
+    private final UserDAO userDAO;
+    private final KdvDAO kdvDAO;
+	private final ResourceBundleBinding resourceBundleBinding;
 
     public AdminController() {
         userDAO = new UserDAO();
         kdvDAO = new KdvDAO();
+		resourceBundleBinding = new ResourceBundleBinding();
     }
+	
+	@FXML private ComboBox<Locale> languageSelectComboBox;
 
     @FXML private TableView<UserDTO> userTable;
     @FXML private TableColumn<UserDTO, Integer> idColumn;
@@ -86,13 +92,21 @@ public class AdminController {
     @FXML private TableColumn<KdvDTO, String> descColumn;
     @FXML private TextField searchKdvField;
 	
-    @FXML private Label LoginUserIdLabelField;
-    @FXML private Label welcomeLabel;
+	@FXML private Label LoginUserIdLabelField;
+	@FXML private Label welcomeLabel;
     @FXML private Label clockLabel;
-    private static Integer loginUserId;
+	private static Integer loginUserId;
 	
-    public static Integer getLoginUserId() { return loginUserId; }
-    public static void setLoginUserId(Integer loginUserId) { this.loginUserId = loginUserId; }
+	public static Integer getLoginUserId() { return loginUserId; }
+	public static void setLoginUserId(Integer loginUserId) { this.loginUserId = loginUserId; }
+	
+	private static final String RESOURCE_NAME = Resources.class.getTypeName();
+	
+	private static final ObservableResourceFactory RESOURCE_FACTORY = new ObservableResourceFactory();
+	
+	static {
+		RESOURCE_FACTORY.setResources(ResourceBundle.getBundle(RESOURCE_NAME));
+	}
 	
     @FXML
     public void initialize() {
@@ -106,14 +120,28 @@ public class AdminController {
         timeline.setCycleCount(Animation.INDEFINITE);
         timeline.play();
 		
-	// GİRİŞ YAPAN KULLANICININ ID NUMARASI LoginUserIdLabelField'e KAYDEDİLİR
-	//LoginUserIdLabelField.setText(Integer.valueOf(request.getParameter("user")));
-	setLoginUserId(Integer.valueOf(Request["user"].toString()));
-	LoginUserIdLabelField.setText(Request["user"].toString());
-	UserDTO userDTO = userDAO.findById(getLoginUserId());
-	if (userDTO.isPresent()) {
-	    welcomeLabel.setText("Merhaba " + userDTO.getUsername() + ", Hoşgeldiniz");
-	}
+		languageSelectComboBox = new ComboBox<>();
+		languageSelectComboBox.getItems().add(null);
+        languageSelectComboBox.getItems().addAll(Locale.ENGLISH, Locale.TURKISH);
+        languageSelectComboBox.setValue(Locale.TURKISH);
+		languageSelectComboBox.setCellFactory(lv -> new LocaleCell());
+		languageSelectComboBox.setButtonCell(new LocaleCell());
+		
+		//languageSelectComboBox.getSelectionModel().selectedIndexProperty().addListener((obs, oldValue, newValue) -> {		
+		languageSelectComboBox.valueProperty().addListener((obs, oldValue, newValue) -> {
+			if (newValue != null) {
+				RESOURCE_FACTORY.setResources(ResourceBundle.getBundle(RESOURCE_NAME, newValue));
+			}
+		});
+		
+		// GİRİŞ YAPAN KULLANICININ ID NUMARASI LoginUserIdLabelField'e KAYDEDİLİR
+		setLoginUserId(Integer.valueOf(request().getQueryString("kullanıcı").toString()));
+		LoginUserIdLabelField.setText(request().getQueryString("kullanıcı").toString());
+		UserDTO userDTO = userDAO.findById(getLoginUserId());
+		if (userDTO.isPresent()) {
+			//welcomeLabel.setText(" Merhaba " + userDTO.getUsername() + " Hoşgeldiniz ");
+			welcomeLabel.setText(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("merhaba") + userDTO.getUsername() + resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("hoşgeldiniz"));
+		}
 
         idColumn.setCellValueFactory(new PropertyValueFactory<>("id"));
         usernameColumn.setCellValueFactory(new PropertyValueFactory<>("username"));
@@ -151,6 +179,18 @@ public class AdminController {
 
         refreshKdvTable();
     }
+	
+	public static class LocaleCell extends ListCell<Locale> {
+		@Override
+		public void updateItem(Locale locale, boolean empty) {
+			super.updateItem(locale, empty);
+			if (empty) {
+				setText(null);
+			} else {
+				setText(locale.getDisplayLanguage(locale));
+			}
+		}
+	}
 
     private void applyFilters() {
         String keyword = searchField.getText().toLowerCase().trim();
@@ -160,16 +200,18 @@ public class AdminController {
         List<UserDTO> fullList = optionalUsers.orElseGet(List::of);
 
         List<UserDTO> filteredList = fullList.stream()
-            .filter(user -> {
-                boolean matchesKeyword = keyword.isEmpty() ||
-                    user.getUsername().toLowerCase().contains(keyword) ||
-                    user.getEmail().toLowerCase().contains(keyword) ||
-                    user.getRole().getDescription().toLowerCase().contains(keyword);
+                .filter(user -> {
+                    boolean matchesKeyword = keyword.isEmpty() ||
+                            user.getUsername().toLowerCase().contains(keyword) ||
+                            user.getEmail().toLowerCase().contains(keyword) ||
+                            user.getRole().getDescription().toLowerCase().contains(keyword);
 
                     boolean matchesRole = (selectedRole == null) || user.getRole() == selectedRole;
+
                     return matchesKeyword && matchesRole;
-            })
-            .toList();
+                })
+                .toList();
+
         userTable.setItems(FXCollections.observableArrayList(filteredList));
     }
 
@@ -182,14 +224,22 @@ public class AdminController {
     @FXML
     public void openKdvPane() {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/neslihanatalay/ibb_ecodation_javafx/view/kdv.fxml"));
+			//if (languageSelectComboBox.getValue() == Locale.TURKISH)
+			if (languageSelectComboBox.getValue().equals(Locale.TURKISH)) {
+				FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/neslihanatalay/ibb_ecodation_javafx/view/kdv_TR.fxml"));
+			} else if (languageSelectComboBox.getValue().equals(Locale.ENGLISH)) {
+				FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/neslihanatalay/ibb_ecodation_javafx/view/kdv_EN.fxml"));
+			}
+            //FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/neslihanatalay/ibb_ecodation_javafx/view/kdv.fxml"));
             Parent kdvRoot = loader.load();
             Stage stage = new Stage();
-            stage.setTitle("KDV Paneli");
+            //stage.setTitle("KDV Paneli");
+			stage.setTitle(stage.setTitle(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("kdvpanel"));
             stage.setScene(new Scene(kdvRoot));
             stage.show();
         } catch (IOException e) {
-            showAlert("Hata", "KDV ekranı açılamadı!", Alert.AlertType.ERROR);
+            //showAlert("Hata", "KDV ekranı açılamadı!", Alert.AlertType.ERROR);
+			showAlert(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("hata"), resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("hatakdvsayfası"), Alert.AlertType.ERROR);
             e.printStackTrace();
         }
     }
@@ -201,7 +251,8 @@ public class AdminController {
         List<UserDTO> userDTOList = optionalUsers.orElseGet(List::of);
         ObservableList<UserDTO> observableList = FXCollections.observableArrayList(userDTOList);
         userTable.setItems(observableList);
-        showAlert("Bilgi", "Tablo başarıyla yenilendi!", Alert.AlertType.INFORMATION);
+        //showAlert("Bilgi", "Tablo başarıyla yenilendi!", Alert.AlertType.INFORMATION);
+		showAlert(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("bilgi"), resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("tabloyenileme"), Alert.AlertType.INFORMATION);
     }
 
     private void showAlert(String title, String message, Alert.AlertType type) {
@@ -214,9 +265,12 @@ public class AdminController {
     @FXML
     private void logout() {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-        alert.setTitle("Çıkış Yap");
-        alert.setHeaderText("Oturumdan çıkmak istiyor musunuz?");
-        alert.setContentText("Emin misiniz?");
+        //alert.setTitle("Çıkış Yap");
+		alert.setTitle(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("çıkış"));
+        //alert.setHeaderText("Oturumdan çıkmak istiyor musunuz?");
+		alert.setHeaderText(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("çıkma"));
+        //alert.setContentText("Emin misiniz?");
+		alert.setContentText(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("eminmisiniz?"));
         Optional<ButtonType> result = alert.showAndWait();
         if (result.isPresent() && result.get() == ButtonType.OK) {
             try {
@@ -226,7 +280,8 @@ public class AdminController {
                 stage.setScene(new Scene(root));
                 stage.show();
             } catch (IOException e) {
-                showAlert("Hata", "Giriş sayfasına yönlendirme başarısız!", Alert.AlertType.ERROR);
+                //showAlert("Hata", "Giriş sayfasına yönlendirme başarısız!", Alert.AlertType.ERROR);
+				showAlert(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("hata"), resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("hatagirişsayfası"), Alert.AlertType.ERROR);
             }
         }
     }
@@ -235,7 +290,8 @@ public class AdminController {
     public void printTable() {
         Printer printer = Printer.getDefaultPrinter();
         if (printer == null) {
-            showAlert("Yazıcı Bulunamadı", "Yazıcı sistemde tanımlı değil.", Alert.AlertType.ERROR);
+            //showAlert("Yazıcı Bulunamadı", "Yazıcı sistemde tanımlı değil.", Alert.AlertType.ERROR);
+			showAlert(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("hata"), resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("hatayazıcı"), Alert.AlertType.ERROR);
             return;
         }
 
@@ -244,9 +300,11 @@ public class AdminController {
             boolean success = job.printPage(userTable);
             if (success) {
                 job.endJob();
-                showAlert("Yazdırma", "Tablo başarıyla yazdırıldı.", Alert.AlertType.INFORMATION);
+                //showAlert("Yazdırma", "Tablo başarıyla yazdırıldı.", Alert.AlertType.INFORMATION);
+				showAlert(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("bilgi"), resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("yazdırmabaşarılı"), Alert.AlertType.INFORMATION);
             } else {
-                showAlert("Yazdırma Hatası", "Yazdırma işlemi başarısız oldu.", Alert.AlertType.ERROR);
+                //showAlert("Yazdırma Hatası", "Tablo başarıyla yazdırılamadı.", Alert.AlertType.ERROR);
+				showAlert(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("hata"), resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("yazdırmabaşarısız"), Alert.AlertType.ERROR);
             }
         }
     }
@@ -262,10 +320,12 @@ public class AdminController {
             } else if (os.contains("nux")) {
                 Runtime.getRuntime().exec("gnome-calculator"); // Linux için
             } else {
-                showAlert("Hata", "Bu işletim sistemi desteklenmiyor!", Alert.AlertType.ERROR);
+                //showAlert("Hata", "Bu işletim sistemi desteklenmiyor!", Alert.AlertType.ERROR);
+				showAlert(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("hata"), resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("hataişletimsistemi"), Alert.AlertType.ERROR);
             }
         } catch (IOException e) {
-            showAlert("Hata", "Hesap makinesi açılamadı.", Alert.AlertType.ERROR);
+			//showAlert("Hata", "Hesap makinesi açılamadı!", Alert.AlertType.ERROR);
+            showAlert(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("hata"), resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("hatahesapmakinesi"), Alert.AlertType.ERROR);
             e.printStackTrace();
         }
     }
@@ -273,35 +333,43 @@ public class AdminController {
     @FXML
     public void openKdvCalculator() {
         Dialog<Void> dialog = new Dialog<>();
-        dialog.setTitle("KDV Hesapla");
-        dialog.setHeaderText("KDV Hesaplayıcı");
+        //dialog.setTitle("KDV Hesapla");
+		dialog.setTitle(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("kdvhesapla"));
+        //dialog.setHeaderText("KDV Hesaplayıcı");
+		dialog.setHeaderText(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("kdvhesaplayıcı"));
 
         TextField amountField = new TextField();
         ComboBox<String> kdvBox = new ComboBox<>();
-        kdvBox.getItems().addAll("1%", "8%", "18%", "Özel");
+        kdvBox.getItems().addAll("1%", "8%", "18%", resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("özel"));
         kdvBox.setValue("18%");
-        TextField customKdv = new TextField(); customKdv.setDisable(true);
+        TextField customKdv = new TextField();
+		customKdv.setDisable(true);
         TextField receiptField = new TextField();
         DatePicker datePicker = new DatePicker();
         Label resultLabel = new Label();
 
         kdvBox.valueProperty().addListener((obs, oldVal, newVal) -> {
-            customKdv.setDisable(!"Özel".equals(newVal));
-            if (!"Özel".equals(newVal)) customKdv.clear();
+            customKdv.setDisable(!resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("özel").equals(newVal));
+            if (!resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("özel").equals(newVal)) customKdv.clear();
         });
 
         GridPane grid = new GridPane();
         grid.setHgap(10); grid.setVgap(10);
-        grid.addRow(0, new Label("Tutar:"), amountField);
-        grid.addRow(1, new Label("KDV Oranı:"), kdvBox);
-        grid.addRow(2, new Label("Özel Oran:"), customKdv);
-        grid.addRow(3, new Label("Fiş No:"), receiptField);
-        grid.addRow(4, new Label("Tarih:"), datePicker);
+        //grid.addRow(0, new Label("Tutar"), amountField);
+		grid.addRow(0, new Label(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("tutar")), amountField);
+        //grid.addRow(1, new Label("KDV Oranı"), kdvBox);
+		grid.addRow(1, new Label(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("kdvoran")), kdvBox);
+        //grid.addRow(2, new Label("Özel Oran"), customKdv);
+		grid.addRow(2, new Label(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("özeloran")), customKdv);
+        //grid.addRow(3, new Label("Fiş No"), receiptField);
+		grid.addRow(3, new Label(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("fişno")), receiptField);
+        //grid.addRow(4, new Label("Tarih"), datePicker);
+		grid.addRow(4, new Label(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("tarih")), datePicker);
         grid.add(resultLabel, 0, 5, 2, 1);
 
         dialog.getDialogPane().setContent(grid);
         dialog.getDialogPane().getButtonTypes().addAll(
-                new ButtonType("Hesapla", ButtonBar.ButtonData.OK_DONE), ButtonType.CLOSE);
+                new ButtonType(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("hesapla"), ButtonBar.ButtonData.OK_DONE), ButtonType.CLOSE);
 
         dialog.setResultConverter(button -> {
             if (button.getButtonData() == ButtonBar.ButtonData.OK_DONE) {
@@ -316,20 +384,21 @@ public class AdminController {
                     double kdv = amount * rate / 100;
                     double total = amount + kdv;
 
-                    String result = String.format("""
-                            Fiş No: %s
-                            Tarih: %s
-                            Ara Toplam: %.2f ₺
-                            KDV (%%%.1f): %.2f ₺
-                            Genel Toplam: %.2f ₺
-                            """,
+                    String result = String.format(""" " +
+                            resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("fişno") + ": %s" +
+                            resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("tarih") + ": %s" +
+                            resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("aratoplam") + ": %.2f ₺" +
+                            resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("kdv") + "(%%%.1f):" + ": %.2f ₺" +
+                            resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("geneltoplam") + ": %.2f ₺" +
+                            " """,
                             receiptField.getText(), datePicker.getValue(),
                             amount, rate, kdv, total);
 
                     resultLabel.setText(result);
                     showExportOptions(result);
                 } catch (Exception e) {
-                    showAlert("Hata", "Geçersiz giriş.", Alert.AlertType.ERROR);
+                    //showAlert("Hata", "Geçersiz giriş.", Alert.AlertType.ERROR);
+					showAlert(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("hata"), resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("geçersizgiriş"), Alert.AlertType.ERROR);
                 }
             }
             return null;
@@ -340,9 +409,12 @@ public class AdminController {
 
     private void showExportOptions(String content) {
         ChoiceDialog<String> dialog = new ChoiceDialog<>("TXT", "TXT", "PDF", "EXCEL", "MAIL");
-        dialog.setTitle("Dışa Aktar");
-        dialog.setHeaderText("KDV sonucu nasıl dışa aktarılsın?");
-        dialog.setContentText("Format:");
+        //dialog.setTitle("Dışa Aktar");
+		dialog.setTitle(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("dışaaktar"));
+        //dialog.setHeaderText("KDV sonucu nasıl dışa aktarılsın?");
+		dialog.setHeaderText(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("dışaaktarmaformat"));
+        //dialog.setContentText("Format:");
+		dialog.setContentText(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("format"));
         dialog.showAndWait().ifPresent(choice -> {
             switch (choice) {
                 case "TXT" -> exportAsTxt(content);
@@ -355,9 +427,12 @@ public class AdminController {
 
     private void sendMail(String content) {
         TextInputDialog dialog = new TextInputDialog();
-        dialog.setTitle("E-Posta Gönder");
-        dialog.setHeaderText("KDV sonucunu göndereceğiniz e-posta adresini girin:");
-        dialog.setContentText("E-posta:");
+        //dialog.setTitle("E-Posta Gönderme");
+		dialog.setTitle(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("epostagönderme"));
+        //dialog.setHeaderText("KDV sonucunu göndereceğiniz e-posta adresini giriniz:");
+		dialog.setHeaderText(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("epostaadresi"));
+        //dialog.setContentText("E-posta:");
+		dialog.setContentText(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("eposta"));
 
         Optional<String> result = dialog.showAndWait();
         result.ifPresent(receiver -> {
@@ -382,15 +457,18 @@ public class AdminController {
                 Message message = new MimeMessage(session);
                 message.setFrom(new InternetAddress(senderEmail));
                 message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(receiver));
-                message.setSubject("KDV Hesaplama Sonucu");
+                //message.setSubject("KDV Hesaplama Sonucu");
+				message.setSubject(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("kdvsonuç"));
                 message.setText(content);
 
                 Transport.send(message);
 
-                showAlert("Başarılı", "Mail başarıyla gönderildi!", Alert.AlertType.INFORMATION);
+                //showAlert("Başarılı", "Mail başarıyla gönderildi.", Alert.AlertType.INFORMATION);
+				showAlert(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("başarılı"), resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("mailbaşarılı"), Alert.AlertType.INFORMATION);
             } catch (MessagingException e) {
                 e.printStackTrace();
-                showAlert("Hata", "Mail gönderilemedi.", Alert.AlertType.ERROR);
+                //showAlert("Hata", "Mail gönderilemedi!", Alert.AlertType.ERROR);
+				showAlert(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("hata"), resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("mailbaşarısız"), Alert.AlertType.INFORMATION);
             }
         });
     }
@@ -400,9 +478,11 @@ public class AdminController {
             Path path = Paths.get(System.getProperty("user.home"), "Desktop",
                     "kdv_" + System.currentTimeMillis() + ".txt");
             Files.writeString(path, content);
-            showAlert("Başarılı", "TXT masaüstüne kaydedildi", Alert.AlertType.INFORMATION);
+            //showAlert("Başarılı", "TXT dosyası masaüstüne kaydedildi.", Alert.AlertType.INFORMATION);
+			showAlert(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("başarılı"), resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("txtdosyası"), Alert.AlertType.INFORMATION);
         } catch (IOException e) {
-            showAlert("Hata", "TXT kaydedilemedi.", Alert.AlertType.ERROR);
+            //showAlert("Hata", "TXT dosyası masaüstüne kaydedilemedi!", Alert.AlertType.ERROR);
+			showAlert(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("hata"), resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("txtdosyasıbaşarısız"), Alert.AlertType.ERROR);
         }
     }
 
@@ -427,13 +507,15 @@ public class AdminController {
 
             File file = new File(System.getProperty("user.home") + "/Desktop/kdv_" + System.currentTimeMillis() + ".pdf");
             doc.save(file);
-            showAlert("Başarılı", "PDF masaüstüne kaydedildi", Alert.AlertType.INFORMATION);
+            //showAlert("Başarılı", "PDF dosyası masaüstüne kaydedildi", Alert.AlertType.INFORMATION);
+			showAlert(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("başarılı"), resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("pdfdosyasıbaşarılı"), Alert.AlertType.INFORMATION);
         } catch (IOException e) {
-            showAlert("Hata", "PDF kaydedilemedi.", Alert.AlertType.ERROR);
+            //showAlert("Hata", "PDF dosyası masaüstüne kaydedilemedi!", Alert.AlertType.ERROR);
+			showAlert(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("hata"), resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("pdfdosyasıbaşarısız"), Alert.AlertType.ERROR);
         }
     }
 
-    private void exportAsExcel(String content) {
+	private void exportAsExcel(String content) {
         try (Workbook wb = new XSSFWorkbook()) {
             Sheet sheet = wb.createSheet("KDV");
 
@@ -443,7 +525,14 @@ public class AdminController {
             headerStyle.setFont(font);
 
             Row header = sheet.createRow(0);
-            String[] headers = {"ID", "Tutar", "KDV Oranı", "KDV Tutarı", "Toplam", "Fiş No", "Tarih", "Açıklama"};
+            //String[] headers = {"ID", "Tutar", "KDV Oranı", "KDV Tutarı", "Toplam", "Fiş No", "Tarih", "Açıklama"};
+			String[] headers = {"ID", resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("tutar"), 
+				resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("kdvoran"), 
+				resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("kdvtutar"),
+				resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("toplam"),
+				resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("fişno"),
+				resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("tarih"),
+				resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("açıklama")};
             for (int i = 0; i < headers.length; i++) {
                 var cell = header.createCell(i);
                 cell.setCellValue(headers[i]);
@@ -472,9 +561,11 @@ public class AdminController {
                 wb.write(fos);
             }
 
-            showAlert("Başarılı", "Excel masaüstüne kaydedildi", Alert.AlertType.INFORMATION);
+            //showAlert("Başarılı", "Excel dosyası masaüstüne kaydedildi.", Alert.AlertType.INFORMATION);
+			showAlert(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("hata"), resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("exceldosyasıbaşarılı"), Alert.AlertType.INFORMATION);
         } catch (IOException e) {
-            showAlert("Hata", "Excel kaydedilemedi.", Alert.AlertType.ERROR);
+            //showAlert("Hata", "Excel dosyası masaüstüne kaydedilemedi!", Alert.AlertType.ERROR);
+			showAlert(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("hata"), resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("exceldosyasıbaşarısız"), Alert.AlertType.ERROR);
         }
     }
 
@@ -500,9 +591,11 @@ public class AdminController {
             boolean success = job.printPage(kdvTable);
             if (success) {
                 job.endJob();
-                showAlert("Yazdırma", "KDV tablosu yazdırıldı.", Alert.AlertType.INFORMATION);
+                //showAlert("Yazdırma", "KDV tablosu yazdırma başarılı.", Alert.AlertType.INFORMATION);
+				showAlert("başarılı", "kdvtablosuyazdırmabaşarılı", Alert.AlertType.INFORMATION);
             } else {
-                showAlert("Hata", "Yazdırma başarısız.", Alert.AlertType.ERROR);
+                //showAlert("Hata", "KDV tablosu yazdırma başarısız!", Alert.AlertType.ERROR);
+				showAlert("başarısız", "kdvtablosuyazdırmabaşarısız", Alert.AlertType.INFORMATION);
             }
         }
     }
@@ -514,7 +607,14 @@ public class AdminController {
 
     private String generateKdvSummary() {
         StringBuilder builder = new StringBuilder();
-        builder.append("ID\tTutar\tKDV Oranı\tKDV Tutarı\tToplam\tFiş No\tTarih\tAçıklama\n");
+        builder.append("ID\t" +
+			resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("tutar") + "\t" +
+			resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("kdvoran") + "\t" +
+			resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("kdvtutar") + "\t" +
+			resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("toplam") + "\t" +
+			resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("fişno") + "\t" +
+			resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("tarih") + "\t" +
+			resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("açıklama") + "\n");
         for (KdvDTO kdv : kdvTable.getItems()) {
             builder.append(String.format("%d\t%.2f\t%.2f%%\t%.2f\t%.2f\t%s\t%s\t%s\n",
                     kdv.getId(),
@@ -531,12 +631,14 @@ public class AdminController {
 
     @FXML
     private void handleNew() {
-        System.out.println("Yeni oluşturuluyor...");
+        //System.out.println("Yeni oluşturuluyor...");
+		System.out.println(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("yeni"));
     }
 
     @FXML
     private void handleOpen() {
-        System.out.println("Dosya açılıyor...");
+        //System.out.println("Dosya açılıyor...");
+		System.out.println(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("dosyaaçma"));
     }
 
     @FXML
@@ -563,65 +665,77 @@ public class AdminController {
     @FXML
     private void showAbout() {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Hakkında");
-        alert.setHeaderText("Uygulama Bilgisi");
-        alert.setContentText("Bu uygulama JavaFX ile geliştirilmiştir.");
+		//alert.setTitle("Hakkında");
+        alert.setTitle(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("hakkında"));
+		//alert.setHeaderText("Uygulama Bilgisi");
+		alert.setHeaderText(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("uygulamabilgisi"));
+        //alert.setContentText("Bu uygulama JavaFX ile geliştirilmiştir.");
+		alert.setContentText(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("uygulamabilgisiaçıklama"));
         alert.showAndWait();
     }
 
     private static class AddUserDialog extends Dialog<UserDTO> {
         private final TextField usernameField = new TextField();
         private final PasswordField passwordField = new PasswordField();
-	private final PasswordField passwordAgainField = new PasswordField();
+		private final PasswordField passwordAgainField = new PasswordField();
         private final TextField emailField = new TextField();
         private final ComboBox<String> roleComboBox = new ComboBox<>();
 
         public AddUserDialog() {
-            setTitle("Yeni Kullanıcı Ekle");
-            setHeaderText("Yeni kullanıcı bilgilerini girin");
+            //setTitle("Yeni Kullanıcı Ekle");
+			setTitle(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("yenikullanıcı"));
+            //setHeaderText("Yeni kullanıcı bilgilerini giriniz.");
+			setHeaderText(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("yenikullanıcıbilgisi"));
 
             //roleComboBox.getItems().addAll("USER", "ADMIN", "MODERATOR");
             //roleComboBox.setValue("USER");
 
             ComboBox<ERole> roleComboBox = new ComboBox<>();
             roleComboBox.getItems().addAll(ERole.values());
-            roleComboBox.setValue(ERole.USER); // Varsayılan seçim
+            roleComboBox.setValue(ERole.USER);
 
             GridPane grid = new GridPane();
             grid.setHgap(10);
             grid.setVgap(10);
             grid.setPadding(new Insets(20, 150, 10, 10));
 
-            grid.add(new Label("Kullanıcı Adı:"), 0, 0);
+            //grid.add(new Label("Kullanıcı Adı"), 0, 0);
+			grid.add(new Label(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("kullanıcıad")), 0, 0);
             grid.add(usernameField, 1, 0);
-            grid.add(new Label("Şifre:"), 0, 1);
+            //grid.add(new Label("Şifre"), 0, 1);
+			grid.add(new Label(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("şifre")), 0, 1);
             grid.add(passwordField, 1, 1);
-	    grid.add(new Label("Yeni Şifre:"), 0, 2);
+			//grid.add(new Label("Şifre Tekrar"), 0, 2);
+			grid.add(new Label(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("şifretekrar")), 0, 2);
             grid.add(passwordAgainField, 1, 2);
-            grid.add(new Label("E-posta:"), 0, 3);
+            //grid.add(new Label("E-posta"), 0, 3);
+			grid.add(new Label(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("eposta")), 0, 3);
             grid.add(emailField, 1, 3);
-            grid.add(new Label("Rol:"), 0, 4);
+            //grid.add(new Label("Rol"), 0, 4);
+			grid.add(new Label(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("rol")), 0, 4);
             grid.add(roleComboBox, 1, 4);
 
             getDialogPane().setContent(grid);
 
-            ButtonType addButtonType = new ButtonType("Ekle", ButtonBar.ButtonData.OK_DONE);
+            //ButtonType addButtonType = new ButtonType("Kullanıcı Kaydet", ButtonBar.ButtonData.OK_DONE);
+			ButtonType addButtonType = new ButtonType(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("kullanıcıkayıt"), ButtonBar.ButtonData.OK_DONE);
             getDialogPane().getButtonTypes().addAll(addButtonType, ButtonType.CANCEL);
 
             setResultConverter(dialogButton -> {
                 if (dialogButton == addButtonType) {
-		    if (passwordField.equals(passwordAgainField)) {
-			return UserDTO.builder()
-				.username(usernameField.getText().trim())
-				.password(passwordField.getText().trim())
-				.email(emailField.getText().trim())
-				.role(ERole.valueOf(roleComboBox.getValue().name()))
-				.count(0)
-				.build();
-		    } else {
-			showAlert("Uyarı", "Yeni Şifre ve Yeni Şifre Tekrar alanlarını lütfen aynı doldurunuz!", Alert.AlertType.WARNING);
-			return;
-		    }
+					if (passwordField.equals(passwordAgainField)) {
+						return UserDTO.builder()
+							.username(usernameField.getText().trim())
+							.password(passwordField.getText().trim())
+							.email(emailField.getText().trim())
+							.role(ERole.valueOf(roleComboBox.getValue().name()))
+							.count(0)
+							.build();
+					} else {
+						//showAlert("Uyarı", "Şifre ve Şifre Tekrar alanlarını lütfen aynı doldurunuz!", Alert.AlertType.WARNING);
+						showAlert(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("uyarı"), resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("şifrevetekrar"), Alert.AlertType.WARNING);
+						return;
+					}
                 }
                 return null;
             });
@@ -635,26 +749,27 @@ public class AdminController {
 
         result.ifPresent(newUser -> {
             if (newUser.getUsername().isEmpty() || newUser.getPassword().isEmpty() || newUser.getEmail().isEmpty()) {
-                showAlert("Hata", "Tüm alanlar doldurulmalı!", Alert.AlertType.ERROR);
+                //showAlert("Hata", "Tüm alanlar doldurulmalı!", Alert.AlertType.ERROR);
+				showAlert(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("hata"), resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("tümalanlar"), Alert.AlertType.ERROR);
                 return;
             }
 
             if (userDAO.isUsernameExists(newUser.getUsername())) {
-                showAlert("Uyarı", "Bu kullanıcı adı zaten kayıtlı!", Alert.AlertType.WARNING);
+                showAlert(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("uyarı"), resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("kayıtlıkullanıcıadı"), Alert.AlertType.WARNING);
                 return;
             }
 
             if (userDAO.isEmailExists(newUser.getEmail())) {
-                showAlert("Uyarı", "Bu e-posta zaten kayıtlı!", Alert.AlertType.WARNING);
+                showAlert(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("Uyarı"), resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("kayıtlıeposta"), Alert.AlertType.WARNING);
                 return;
             }
 
             Optional<UserDTO> createdUser = userDAO.create(newUser);
             if (createdUser.isPresent()) {
-                showAlert("Başarılı", "Kullanıcı başarıyla eklendi!", Alert.AlertType.INFORMATION);
+                showAlert(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("başarılı"), resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("kullanıcıkaydetme"), Alert.AlertType.INFORMATION);
                 refreshTable();
             } else {
-                showAlert("Hata", "Kullanıcı eklenemedi!", Alert.AlertType.ERROR);
+                showAlert(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("hata"), resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("kullanıcıkaydedilmedi"), Alert.AlertType.ERROR);
             }
         });
     }
@@ -662,13 +777,15 @@ public class AdminController {
     private static class UpdateUserDialog extends Dialog<UserDTO> {
         private final TextField usernameField = new TextField();
         private final PasswordField passwordField = new PasswordField();
-	private final PasswordField passwordAgainField = new PasswordField();
+		private final PasswordField passwordAgainField = new PasswordField();
         private final TextField emailField = new TextField();
         private final ComboBox<ERole> roleComboBox = new ComboBox<>();
 
         public UpdateUserDialog(UserDTO existingUser) {
-            setTitle("Kullanıcı Güncelle");
-            setHeaderText("Kullanıcı bilgilerini düzenleyin");
+            //setTitle("Kullanıcı Güncelle");
+			setTitle(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("kullanıcıgüncelle"));
+            //setHeaderText("Kullanıcı bilgilerini düzenleyin");
+			setHeaderText(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("kullanıcıbilgigüncelle"));
 
             usernameField.setText(existingUser.getUsername());
             emailField.setText(existingUser.getEmail());
@@ -686,42 +803,50 @@ public class AdminController {
             grid.setVgap(10);
             grid.setPadding(new Insets(20, 150, 10, 10));
 
-            grid.add(new Label("Kullanıcı Adı:"), 0, 0);
+            //grid.add(new Label("Kullanıcı Adı:"), 0, 0);
+			grid.add(new Label(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("kullanıcıad")), 0, 0);
             grid.add(usernameField, 1, 0);
-            grid.add(new Label("Yeni Şifre:"), 0, 1);
+            //grid.add(new Label("Yeni Şifre:"), 0, 1);
+			grid.add(new Label(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("yenişifre")), 0, 1);
             grid.add(passwordField, 1, 1);
-            grid.add(new Label("Yeni Şifre Tekrar:"), 0, 2);
+            //grid.add(new Label("Yeni Şifre Tekrar:"), 0, 2);
+			grid.add(new Label(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("yenişifretekrar")), 0, 2);
             grid.add(passwordAgainField, 1, 2);
-            grid.add(new Label("E-posta:"), 0, 3);
+            //grid.add(new Label("E-posta:"), 0, 3);
+			grid.add(new Label(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("eposta")), 0, 3);
             grid.add(emailField, 1, 3);
-            grid.add(new Label("Rol:"), 0, 4);
+            //grid.add(new Label("Rol:"), 0, 4);
+			grid.add(new Label(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("rol")), 0, 4);
             grid.add(roleComboBox, 1, 4);
 
             getDialogPane().setContent(grid);
 
-            ButtonType updateButtonType = new ButtonType("Güncelle", ButtonBar.ButtonData.OK_DONE);
+            //ButtonType updateButtonType = new ButtonType("Güncelle", ButtonBar.ButtonData.OK_DONE);
+			ButtonType updateButtonType = new ButtonType(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("güncelle"), ButtonBar.ButtonData.OK_DONE);
             getDialogPane().getButtonTypes().addAll(updateButtonType, ButtonType.CANCEL);
 
             setResultConverter(dialogButton -> {
-		if (dialogButton == updateButtonType) {
+				if (dialogButton == updateButtonType) {
                     try {
-			if (passwordField.equals(passwordAgainField)) {
-			    return UserDTO.builder()
-				.username(usernameField.getText().trim())
-				.password(passwordField.getText().trim().isEmpty()
+						if (passwordField.equals(passwordAgainField)) {
+							return UserDTO.builder()
+								.username(usernameField.getText().trim())
+								.password(passwordField.getText().trim().isEmpty()
                                     ? existingUser.getPassword()
                                     : passwordField.getText().trim())
-				.email(emailField.getText().trim())
-				.role(ERole.valueOf(roleComboBox.getValue().name()))
-				.count(existingUser.getCount())
-				.build();
-			} else {
-			    showAlert("Uyarı", "Yeni Şifre ve Yeni Şifre Tekrar alanlarını lütfen aynı doldurunuz!", Alert.AlertType.WARNING);
-			    return;
-			}
-		    } catch(Exception e) {
-			showAlert("Hata", "Geçersiz veri!", Alert.AlertType.ERROR);
-		    }
+								.email(emailField.getText().trim())
+								.role(ERole.valueOf(roleComboBox.getValue().name()))
+								.count(existingUser.getCount())
+								.build();
+						} else {
+							//showAlert("Uyarı", "Yeni Şifre ve Yeni Şifre Tekrar alanlarını lütfen aynı doldurunuz!", Alert.AlertType.WARNING);
+							showAlert(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("uyarı"), resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("şifreveşifretekrar"), Alert.AlertType.WARNING);
+							return;
+						}
+					} catch(Exception e) {
+						//showAlert("Hata", "Geçersiz veri!", Alert.AlertType.ERROR);
+						showAlert(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("hata"), resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("geçersizveri"), Alert.AlertType.ERROR);
+					}
                 }
                 return null;
             });
@@ -733,7 +858,8 @@ public class AdminController {
         UserDTO selectedUser = userTable.getSelectionModel().getSelectedItem();
 
         if (selectedUser == null) {
-            showAlert("Uyarı", "Lütfen güncellenecek bir kullanıcı seçin!", Alert.AlertType.WARNING);
+            //showAlert("Uyarı", "Lütfen güncellenecek bir kayıt seçin.", Alert.AlertType.WARNING);
+			showAlert(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("uyarı"), resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("seçgüncellenecek"), Alert.AlertType.WARNING);
             return;
         }
 
@@ -742,16 +868,19 @@ public class AdminController {
 
         result.ifPresent(updatedUser -> {
             if (updatedUser.getUsername().isEmpty() || updatedUser.getPassword().isEmpty() || updatedUser.getEmail().isEmpty()) {
-                showAlert("Hata", "Tüm alanlar doldurulmalı!", Alert.AlertType.ERROR);
+                //showAlert("Hata", "Lütfen tüm alanları doldurunuz!", Alert.AlertType.ERROR);
+				showAlert(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("hata"), resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("tümalanlar"), Alert.AlertType.ERROR);
                 return;
             }
 
             Optional<UserDTO> updated = userDAO.update(selectedUser.getId(), updatedUser);
             if (updated.isPresent()) {
-                showAlert("Başarılı", "Kullanıcı güncellendi!", Alert.AlertType.INFORMATION);
+                //showAlert("Başarılı", "Kullanıcı güncellendi!", Alert.AlertType.INFORMATION);
+				showAlert(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("başarılı"), resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("kullanıcıgüncelleme"), Alert.AlertType.INFORMATION);
                 refreshTable();
             } else {
-                showAlert("Hata", "Güncelleme işlemi başarısız!", Alert.AlertType.ERROR);
+                //showAlert("Hata", "Kullanıcı güncellenemedi!", Alert.AlertType.ERROR);
+				showAlert(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("hata"), resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("kullanıcıgüncellenmedi"), Alert.AlertType.ERROR);
             }
         });
     }
@@ -761,17 +890,22 @@ public class AdminController {
         Optional<UserDTO> selectedUser = Optional.ofNullable(userTable.getSelectionModel().getSelectedItem());
         selectedUser.ifPresent(user -> {
             Alert confirmationAlert = new Alert(Alert.AlertType.CONFIRMATION);
-            confirmationAlert.setTitle("Silme Onayı");
-            confirmationAlert.setHeaderText("Kullanıcıyı silmek istiyor musunuz?");
-            confirmationAlert.setContentText("Silinecek kullanıcı: " + user.getUsername());
+            //confirmationAlert.setTitle("Silme Onayı");
+			confirmationAlert.setTitle(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("silmeonay"));
+            //confirmationAlert.setHeaderText("Silmeyi onaylıyor musunuz?");
+			confirmationAlert.setHeaderText(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("onaylasilme"));
+            //confirmationAlert.setContentText("Silinecek kullanıcı: " + user.getUsername());
+			confirmationAlert.setContentText(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("silinecekkullanıcı") + user.getUsername());
             Optional<ButtonType> isDelete = confirmationAlert.showAndWait();
             if (isDelete.isPresent() && isDelete.get() == ButtonType.OK) {
                 Optional<UserDTO> deleteUser = userDAO.delete(user.getId());
                 if (deleteUser.isPresent()) {
-                    showAlert("Başarılı", "Kullanıcı başarıyla silindi", Alert.AlertType.INFORMATION);
+                    //showAlert("Başarılı", "Kullanıcı başarıyla silindi.", Alert.AlertType.INFORMATION);
+					showAlert(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("başarılı"), resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("kullanıcısilme"), Alert.AlertType.INFORMATION);
                     refreshTable();
                 } else {
-                    showAlert("Başarısız", "Silme işlemi başarısız oldu", Alert.AlertType.ERROR);
+                    //showAlert("Hata", "Kullanıcı başarıyla silinemedi!", Alert.AlertType.ERROR);
+					showAlert(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("hata"), resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("kullanıcısilinemedi"), Alert.AlertType.ERROR);
                 }
             }
         });
@@ -797,7 +931,8 @@ public class AdminController {
         if (newKdv != null && newKdv.isValid()) {
             kdvDAO.create(newKdv);
             refreshKdvTable();
-            showAlert("Başarılı", "KDV kaydı eklendi.", Alert.AlertType.INFORMATION);
+            //showAlert("Bilgi", "KDV kaydı başarıyla eklendi.", Alert.AlertType.INFORMATION);
+			showAlert(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("bilgi"), resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("yenikdv"), Alert.AlertType.INFORMATION);
         }
     }
 
@@ -805,7 +940,8 @@ public class AdminController {
     public void updateKdv() {
         KdvDTO selected = kdvTable.getSelectionModel().getSelectedItem();
         if (selected == null) {
-            showAlert("Uyarı", "Güncellenecek bir kayıt seçin.", Alert.AlertType.WARNING);
+            //showAlert("Uyarı", "Lütfen güncellenecek bir kayıt seçin.", Alert.AlertType.WARNING);
+			showAlert(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("uyarı"), resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("seçgüncellenecek"), Alert.AlertType.WARNING);
             return;
         }
 
@@ -813,7 +949,8 @@ public class AdminController {
         if (updated != null && updated.isValid()) {
             kdvDAO.update(selected.getId(), updated);
             refreshKdvTable();
-            showAlert("Başarılı", "KDV kaydı güncellendi.", Alert.AlertType.INFORMATION);
+            //showAlert("Bilgi", "KDV kaydı başarıyla güncellendi.", Alert.AlertType.INFORMATION);
+			showAlert(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("bilgi"), resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("kdvgüncelleme"), Alert.AlertType.INFORMATION);
         }
     }
 
@@ -821,24 +958,28 @@ public class AdminController {
     public void deleteKdv() {
         KdvDTO selected = kdvTable.getSelectionModel().getSelectedItem();
         if (selected == null) {
-            showAlert("Uyarı", "Silinecek bir kayıt seçin.", Alert.AlertType.WARNING);
+            //showAlert("Uyarı", "Lütfen silinecek bir kayıt seçin.", Alert.AlertType.WARNING);
+			showAlert(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("uyarı"), resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("seçsilinecek"), Alert.AlertType.WARNING);
             return;
         }
 
-        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION, "Silmek istiyor musunuz?", ButtonType.OK, ButtonType.CANCEL);
+        //Alert confirm = new Alert(Alert.AlertType.CONFIRMATION, "Silmeyi onaylıyor musunuz?", ButtonType.OK, ButtonType.CANCEL);
+		Alert confirm = new Alert(Alert.AlertType.CONFIRMATION, resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("onaylasilme"), ButtonType.OK, ButtonType.CANCEL);
         confirm.setHeaderText("Fiş: " + selected.getReceiptNumber());
         Optional<ButtonType> result = confirm.showAndWait();
         if (result.isPresent() && result.get() == ButtonType.OK) {
             kdvDAO.delete(selected.getId());
             refreshKdvTable();
-            showAlert("Silindi", "KDV kaydı silindi.", Alert.AlertType.INFORMATION);
+            //showAlert("Silindi", "KDV kaydı başarıyla silindi.", Alert.AlertType.INFORMATION);
+			showAlert(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("bilgi"), resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("kdvsilme"), Alert.AlertType.INFORMATION);
         }
     }
 
     private KdvDTO showKdvForm(KdvDTO existing) {
         Dialog<KdvDTO> dialog = new Dialog<>();
-        dialog.setTitle(existing == null ? "Yeni KDV Ekle" : "KDV Güncelle");
-
+        //dialog.setTitle(existing == null ? "Yeni KDV Ekle" : "KDV Güncelle");
+		dialog.setTitle(existing == null ? resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("yenikdvekle") : resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("yenigüncelle"));
+		
         TextField amountField = new TextField();
         TextField rateField = new TextField();
         TextField receiptField = new TextField();
@@ -859,12 +1000,18 @@ public class AdminController {
 
         GridPane grid = new GridPane();
         grid.setHgap(10); grid.setVgap(10);
-        grid.addRow(0, new Label("Tutar:"), amountField);
-        grid.addRow(1, new Label("KDV Oranı (%):"), rateField);
-        grid.addRow(2, new Label("Fiş No:"), receiptField);
-        grid.addRow(3, new Label("Tarih:"), datePicker);
-        grid.addRow(4, new Label("Açıklama:"), descField);
-        grid.addRow(5, new Label("Format:"), exportCombo);
+        //grid.addRow(0, new Label("Tutar"), amountField);
+		grid.addRow(0, new Label(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("tutar")), amountField);
+        //grid.addRow(1, new Label("KDV Oranı (%)"), rateField);
+		grid.addRow(1, new Label(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("kdvoran")), rateField);
+        //grid.addRow(2, new Label("Fiş No"), receiptField);
+		grid.addRow(2, new Label(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("fişno")), receiptField);
+        //grid.addRow(3, new Label("Tarih"), datePicker);
+		grid.addRow(3, new Label(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("tarih")), datePicker);
+        //grid.addRow(4, new Label("Açıklama"), descField);
+		grid.addRow(4, new Label(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("açıklama")), descField);
+        //grid.addRow(5, new Label("Format"), exportCombo);
+		grid.addRow(5, new Label(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("format")), exportCombo);
 
         dialog.getDialogPane().setContent(grid);
         dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
@@ -881,7 +1028,8 @@ public class AdminController {
                             .exportFormat(exportCombo.getValue())
                             .build();
                 } catch (Exception e) {
-                    showAlert("Hata", "Geçersiz veri!", Alert.AlertType.ERROR);
+                    //showAlert("Hata", "Geçersiz veri!", Alert.AlertType.ERROR);
+					showAlert(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("hata"), resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("geçersizveri"), Alert.AlertType.ERROR);
                 }
             }
             return null;
@@ -897,32 +1045,35 @@ public class AdminController {
         // Tema değiştirme işlemleri burada yapılacak
     }
 
+	// UYGULAMA DİLİ (TR/EN)
     @FXML
     private void languageTheme(ActionEvent event) {
-        // Uygulamanın dili değiştirilecek (TR/EN vs.)
-    }
+		
+	}
 
     @FXML
     private void showNotifications(ActionEvent event) {
         // Bildirimleri gösteren popup veya panel açılacak
     }
 	
-    //PROFIL GÜNCELLEME DIALOG
-    private static class UpdateProfileDialog extends Dialog<UserDTO> {
+	//PROFIL GÜNCELLEME DIALOG
+	private static class UpdateProfileDialog extends Dialog<UserDTO> {
         private final TextField usernameField = new TextField();
         private final PasswordField passwordField = new PasswordField();
-	private final PasswordField passwordAgainField = new PasswordField();
+		private final PasswordField passwordAgainField = new PasswordField();
         private final TextField emailField = new TextField();
         private final ComboBox<ERole> roleComboBox = new ComboBox<>();
 
         public UpdateProfileDialog(UserDTO existingUser) {
-            setTitle("Profil Güncelle");
-            setHeaderText("Profil bilgilerini düzenleyin");
+            //setTitle("Profil Güncelleme");
+			setTitle(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("profilgüncelle"));
+            //setHeaderText("Profil bilgilerini düzenleyin");
+			setHeaderText(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("profilbilgileri"));
 
             usernameField.setText(existingUser.getUsername());
             emailField.setText(existingUser.getEmail());
-	    passwordField.setText(existing.getPassword());
-	    passwordAgainField.setText(existing.getPassword());
+			passwordField.setText(existing.getPassword());
+			passwordAgainField.setText(existing.getPassword());
             roleComboBox.getItems().addAll(ERole.values());
 
             try {
@@ -936,124 +1087,142 @@ public class AdminController {
             grid.setVgap(10);
             grid.setPadding(new Insets(20, 150, 10, 10));
 
-            grid.add(new Label("Kullanıcı Adı:"), 0, 0);
+            //grid.add(new Label("Kullanıcı Adı"), 0, 0);
+			grid.add(new Label(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("kullanıcıad")), 0, 0);
             grid.add(usernameField, 1, 0);
-            grid.add(new Label("Yeni Şifre:"), 0, 1);
+            //grid.add(new Label("Yeni Şifre"), 0, 1);
+			grid.add(new Label(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("yenişifre")), 0, 1);
             grid.add(passwordField, 1, 1);
-	    grid.add(new Label("Yeni Şifre Tekrar:"), 0, 2);
+			//grid.add(new Label("Yeni Şifre Tekrar"), 0, 2);
+			grid.add(new Label(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("yenişifretekrar")), 0, 2);
             grid.add(passwordAgainField, 1, 2);
-            grid.add(new Label("E-posta:"), 0, 3);
+            //grid.add(new Label("E-posta"), 0, 3);
+			grid.add(new Label(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("eposta")), 0, 3);
             grid.add(emailField, 1, 3);
-            grid.add(new Label("Rol:"), 0, 4);
+            //grid.add(new Label("Rol"), 0, 4);
+			grid.add(new Label(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("rol")), 0, 4);
             grid.add(roleComboBox, 1, 4);
 
             getDialogPane().setContent(grid);
 
-            ButtonType updateButtonType = new ButtonType("Güncelle", ButtonBar.ButtonData.OK_DONE);
+            //ButtonType updateButtonType = new ButtonType("Güncelle", ButtonBar.ButtonData.OK_DONE);
+			ButtonType updateButtonType = new ButtonType(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("güncelle"), ButtonBar.ButtonData.OK_DONE);
             getDialogPane().getButtonTypes().addAll(updateButtonType, ButtonType.CANCEL);
 
             setResultConverter(dialogButton -> {
                 if (dialogButton == updateButtonType) {
                     try {
-			if (passwordField.equals(passwordAgainField)) {
-			    return UserDTO.builder()
-				.username(usernameField.getText().trim())
-				.password(passwordField.getText().trim().isEmpty()
+						if (passwordField.equals(passwordAgainField)) {
+							return UserDTO.builder()
+								.username(usernameField.getText().trim())
+								.password(passwordField.getText().trim().isEmpty()
                                     ? existingUser.getPassword()
                                     : passwordField.getText().trim())
-				.email(emailField.getText().trim())
-				.role(ERole.valueOf(roleComboBox.getValue().name()))
-				.count(existingUser.getCount())
-				.build();
-			} else {
-			    showAlert("Uyarı", "Yeni Şifre ve Yeni Şifre Tekrar alanlarını lütfen aynı doldurunuz!", Alert.AlertType.WARNING);
-			    return;
-			}
-		    } catch(Exception e) {
-			showAlert("Hata", "Geçersiz veri!", Alert.AlertType.ERROR);
-		    }
+								.email(emailField.getText().trim())
+								.role(ERole.valueOf(roleComboBox.getValue().name()))
+								.count(existingUser.getCount())
+								.build();
+						} else {
+							//showAlert("Uyarı", "Yeni Şifre ve Yeni Şifre Tekrar alanlarını lütfen aynı doldurunuz!", Alert.AlertType.WARNING);
+							showAlert(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("uyarı"), resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("şifreveşifretekrar"), Alert.AlertType.WARNING);
+							return;
+						}
+					} catch(Exception e) {
+						showAlert(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("hata"), resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("geçersizveri"), Alert.AlertType.ERROR);
+					}
                 }
                 return null;
             });
         }
     }
 
-    //PROFIL GÜNCELLEME
+	//PROFIL GÜNCELLEME
     @FXML
     public void updateProfile() {		
-	//if(Integer.valueOf(LoginUserIdLabelField.getText()) != 0) {
-	    //Integer userId = Integer.valueOf(LoginUserIdLabelField.getText());
-	if (getLoginUserId() != 0) {
-	    UserDTO selectedUser = userDAO.findById(getLoginUserId());
-	    if (selectedUser.isPresent()) {
-		UpdateProfileDialog dialog = new UpdateProfileDialog(selectedUser);
-		Optional<UserDTO> result = dialog.showAndWait();
-		result.ifPresent(updatedUser -> {
-		    if (updatedUser.getUsername().isEmpty() || updatedUser.getPassword().isEmpty() || updatedUser.getEmail().isEmpty()) {
-			showAlert("Hata", "Tüm alanlar doldurulmalı!", Alert.AlertType.ERROR);
-			return;
-		    }
-		    Optional<UserDTO> updated = userDAO.update(selectedUser.getId(), updatedUser);
-		    if (updated.isPresent()) {
-			showAlert("Başarılı", "Profil güncellendi.", Alert.AlertType.INFORMATION);
-			//showProfile();
-		    } else {
-		        showAlert("Hata", "Güncelleme işlemi başarısız!", Alert.AlertType.ERROR);
-		    }
-	    	});
-	    }
-	}
+		//if(Integer.valueOf(LoginUserIdLabelField.getText()) != 0) {
+			//Integer userId = Integer.valueOf(LoginUserIdLabelField.getText());
+		if (getLoginUserId() != 0) {
+			UserDTO selectedUser = userDAO.findById(getLoginUserId());
+			if (selectedUser.isPresent()) {
+				UpdateProfileDialog dialog = new UpdateProfileDialog(selectedUser);
+				Optional<UserDTO> result = dialog.showAndWait();
+				result.ifPresent(updatedUser -> {
+					if (updatedUser.getUsername().isEmpty() || updatedUser.getPassword().isEmpty() || updatedUser.getEmail().isEmpty()) {
+						//showAlert("Hata", "Tüm alanlar doldurulmalı!", Alert.AlertType.ERROR);
+						showAlert(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("hata"), resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("tümalanlar"), Alert.AlertType.ERROR);
+						return;
+					}
+					Optional<UserDTO> updated = userDAO.update(selectedUser.getId(), updatedUser);
+					if (updated.isPresent()) {
+						//showAlert("Bilgi", "Profil başarıyla güncellendi.", Alert.AlertType.INFORMATION);
+						showAlert(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("bilgi"), resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("profilgüncelleme"), Alert.AlertType.INFORMATION);
+						showProfile();
+					} else {
+						//showAlert("Hata", "Profil başarıyla güncellenemedi!", Alert.AlertType.ERROR);
+						showAlert(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("hata"), resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("profilgüncellenmedi"), Alert.AlertType.ERROR);
+					}
+				}
+			});
+		}
     }
 	
-    // PROFIL GÖRÜNTÜLEME
-    @FXML
+	// PROFIL GÖRÜNTÜLEME
+	@FXML
     private void showProfile() {
-	private final LabelField usernameField = new LabelField();
-	private final LabelField emailField = new LabelField();
-	private final LabelField roleField = new LabelField();
-	private final LabelField countField = new LabelField();
-	//if(Integer.valueOf(LoginUserIdLabelField.getText()) != 0) {
-	    //Integer userId = Integer.valueOf(LoginUserIdLabelField.getText());
-	if (getLoginUserId() != 0) {
-	    Dialog<UserDTO> dialog = new Dialog<>();
-	    dialog.setTitle("Kullanıcı Profili");
-	    dialog.setHeaderText("Kullanıcı Profil Bilgileri");			
-	    Optional<UserDTO> optionalUser = userDAO.findById(getLoginUserId());
-	    if (optionalUser.isPresent()) {
-		usernameField.setText(String.valueOf(optionalUser.getUsername()));
-		emailField.setText(String.valueOf(optionalUser.getEmail()));
-		roleField.setText(String.valueOf(optionalUser.getRole()));
-		countField.setText(String.valueOf(optionalUser.getCount() + 1));
-	    }
-	    GridPane grid = new GridPane();
-	    grid.setHgap(10); grid.setVgap(10);
-	    grid.addRow(0, new Label("Kullanıcı Ad:"), usernameField);
-	    grid.addRow(1 new Label("Kullanıcı Email:"), emailField);
-	    grid.addRow(2, new Label("Kullanıcı Rol:"), roleField);
-	    grid.addRow(3, new Label("Kullanıcı Profili Görüntülenme Sayısı:"), countField);
-	    dialog.getDialogPane().setContent(grid);
-	    dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK);
-	    dialog.setResultConverter(dialogButton -> {
-		if (dialogButton == ButtonType.OK) {
-		    try {
-			Optional<UserDTO> updatedUser = UserDTO.builder()
-                            	.username(String.valueOf(usernameField.getText()))
-                            	.email(String.valueOf(emailField.getText()))
-                            	.password(String.valueOf(passwordField.getText()))
-			    	.role(ERole.fromString(String.valueOf(roleCombo.getValue())))
-			    	.count(Integer.valueOf(countField.getText()))
-                            	.build();
-			if (updatedUser != null && updatedUser.isValid()) {
-			    userDAO.update(optionalUser.getId(), updatedUser);
-			    showAlert("Bilgi", "Kullanıcı profili görüntülendi.", Alert.AlertType.INFORMATION);
-			    //switchToUserHomePane();
+		private final LabelField usernameField = new LabelField();
+		private final LabelField emailField = new LabelField();
+		private final LabelField roleField = new LabelField();
+		private final LabelField countField = new LabelField();
+		//if(Integer.valueOf(LoginUserIdLabelField.getText()) != 0) {
+			//Integer userId = Integer.valueOf(LoginUserIdLabelField.getText());
+		if (getLoginUserId() != 0) {
+			Dialog<UserDTO> dialog = new Dialog<>();
+			//dialog.setTitle("Kullanıcı Profili");
+			dialog.setTitle(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("kullanıcıprofili"));
+			//dialog.setHeaderText("Kullanıcı Profil Bilgileri");			
+			dialog.setHeaderText(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("kullanıcıprofilbilgileri"));			
+			Optional<UserDTO> optionalUser = userDAO.findById(getLoginUserId());
+			if (optionalUser.isPresent()) {
+				usernameField.setText(String.valueOf(optionalUser.getUsername()));
+				emailField.setText(String.valueOf(optionalUser.getEmail()));
+				roleField.setText(String.valueOf(optionalUser.getRole()));
+				countField.setText(String.valueOf(optionalUser.getCount() + 1));
 			}
+			GridPane grid = new GridPane();
+			grid.setHgap(10); grid.setVgap(10);
+			//grid.addRow(0, new Label("Kullanıcı Ad"), usernameField);
+			grid.addRow(0, new Label(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("kullanıcıad")), usernameField);
+			//grid.addRow(1 new Label("Kullanıcı Email"), emailField);
+			grid.addRow(1 new Label(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("kullanıcıemail")), emailField);
+			//grid.addRow(2, new Label("Kullanıcı Rol"), roleField);
+			grid.addRow(2, new Label(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("kullanıcırol")), roleField);
+			//grid.addRow(3, new Label("Kullanıcı Profili Görüntülenme Sayısı"), countField);
+			grid.addRow(3, new Label(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("kullanıcıprofiligörüntülenmesayısı")), countField);
+			dialog.getDialogPane().setContent(grid);
+			dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK);
+			dialog.setResultConverter(dialogButton -> {
+				if (dialogButton == ButtonType.OK) {
+					try {
+						Optional<UserDTO> updatedUser = UserDTO.builder()
+                            .username(String.valueOf(usernameField.getText()))
+                            .email(String.valueOf(emailField.getText()))
+                            .password(String.valueOf(passwordField.getText()))
+							.role(ERole.fromString(String.valueOf(roleCombo.getValue())))
+							.count(Integer.valueOf(countField.getText()))
+                            .build();
+						if (updatedUser != null && updatedUser.isValid()) {
+							userDAO.update(optionalUser.getId(), updatedUser);
+							//showAlert("Bilgi", "Kullanıcı profili başarıyla görüntülendi.", Alert.AlertType.INFORMATION);
+							showAlert(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("bilgi"), resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("kullanıcıprofilgörüntüleme"), Alert.AlertType.INFORMATION);
+							//switchToUserHomePane();
+						}
                     } catch (Exception e) {
-                        showAlert("Hata", "Geçersiz veri!", Alert.AlertType.ERROR);
+                        //showAlert("Hata", "Geçersiz veri!", Alert.AlertType.ERROR);
+						showAlert(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("hata"), resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("geçersizveri"), Alert.AlertType.ERROR);
                     }
+				}
+			}
 		}
-	    });
-	}
     }
 
     @FXML
@@ -1066,31 +1235,43 @@ public class AdminController {
         // Daha önce alınmış bir yedek dosyadan veri geri yüklenecek
     }
 
-    // NOTLAR SAYFASINA GEÇİŞ
+	// NOTLAR SAYFASINA GEÇİŞ
     @FXML
     private void notebook(ActionEvent event) {
         switchToNotebookPane();
     }
 	
-    @FXML
+	@FXML
     private void switchToNotebookPane() {
         try {
-            SceneHelper.switchScene(FXMLPath.NOTEBOOK + "?user=" + getLoginUserId().toString(), searchField, "NOTLAR");
-        } catch (Exception e) {
-            System.out.println(SpecialColor.RED + "Not sayfasına yönlendirme başarısız" + SpecialColor.RESET);
+			//if (languageSelectComboBox.getValue() == Locale.TURKISH)
+			if (languageSelectComboBox.getValue().equals(Locale.TURKISH)) {
+				SceneHelper.switchScene(FXMLPath.NOTEBOOK_TR + resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("?kullanıcı=") + getLoginUserId().toString(), searchField, resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("notlar"));
+			} else if (languageSelectComboBox.getValue().equals(Locale.ENGLISH)) {
+				SceneHelper.switchScene(FXMLPath.NOTEBOOK_EN + resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("?kullanıcı=") + getLoginUserId().toString(), searchField, resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("notlar"));
+			}
+			//SceneHelper.switchScene(FXMLPath.NOTEBOOK + resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("?kullanıcı=") + getLoginUserId().toString(), searchField, resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("notlar"));
+		} catch (Exception e) {
             e.printStackTrace();
-            showAlert("Hata", "Not ekranı yüklenemedi", Alert.AlertType.ERROR);
+            //showAlert("Hata", "Not sayfası ekranı yüklenemedi", Alert.AlertType.ERROR);
+			showAlert(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("hata"), resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("hatanotsayfası"), Alert.AlertType.ERROR);
         }
     }
 	
-    @FXML
+	@FXML
     private void switchToAdminPane() {
-        try {
-            SceneHelper.switchScene(FXMLPath.ADMIN + "?user" + getLoginUserId().toString(), searchField, "YÖNETİCİ");
+		try {
+			//if (languageSelectComboBox.getValue() == Locale.TURKISH)
+			if (languageSelectComboBox.getValue().equals(Locale.TURKISH)) {
+				SceneHelper.switchScene(FXMLPath.ADMIN_TR + resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("?kullanıcı=") + getLoginUserId().toString(), searchField, resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("yönetici"));
+			} else if (languageSelectComboBox.getValue().equals(Locale.ENGLISH)) {
+				SceneHelper.switchScene(FXMLPath.ADMIN_EN + resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("?kullanıcı=") + getLoginUserId().toString(), searchField, resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("yönetici"));
+			}
+			//SceneHelper.switchScene(FXMLPath.ADMIN + resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("?kullanıcı=") + getLoginUserId().toString(), searchField, resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("yönetici"));
         } catch (Exception e) {
-            System.out.println(SpecialColor.RED + "Yönetici sayfasına yönlendirme başarısız" + SpecialColor.RESET);
             e.printStackTrace();
-            showAlert("Hata", "Yönetici ekranı yüklenemedi", Alert.AlertType.ERROR);
+            //showAlert("Hata", "Yönetici sayfası ekranı yüklenemedi", Alert.AlertType.ERROR);
+			showAlert(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("hata"), resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("hatayöneticisayfası"), Alert.AlertType.ERROR);
         }
     }
 }
