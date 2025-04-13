@@ -21,18 +21,19 @@ public class SingletonPropertiesDBConnection {
             loadDatabaseConfig();
             Class.forName("org.h2.Driver");
             this.connection = DriverManager.getConnection(URL, USERNAME, PASSWORD);
-            System.out.println("âœ… VeritabanÄ± baÄŸlantÄ±sÄ± baÅŸarÄ±lÄ±.");
+            //System.out.println("Veritabanı bağlantısı başarısız!");
             H2DbStarting();
         } catch (Exception e) {
             e.printStackTrace();
-            throw new RuntimeException("âŒ VeritabanÄ± baÄŸlantÄ±sÄ± baÅŸarÄ±sÄ±z!");
+	    throw new RuntimeException(e.getMessage());
+            //throw new RuntimeException("Veritabanı bağlantısı başarısız!");
         }
     }
 	
     private void H2DbStarting() {
         try {
             Server server = Server.createWebServer("-web", "-webAllowOthers", "-webPort", "8082").start();
-            System.out.println("H2 Web Console is running at: http://localhost:8082");
+            //System.out.println("H2 Web Console is running at: http://localhost:8082");
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -48,7 +49,8 @@ public class SingletonPropertiesDBConnection {
             PASSWORD = properties.getProperty("db.password", "");
         } catch (IOException e) {
             e.printStackTrace();
-            throw new RuntimeException("âŒ VeritabanÄ± yapÄ±landÄ±rmasÄ± yÃ¼klenemedi!");
+	    throw new RuntimeException(e.getMessage());
+            //throw new RuntimeException("Veritabanı yapılandırması yüklenemedi!");
         }
     }
 
@@ -67,9 +69,11 @@ public class SingletonPropertiesDBConnection {
         if (instance != null && instance.connection != null) {
             try {
                 instance.connection.close();
-                System.out.println("ğŸ”’ VeritabanÄ± baÄŸlantÄ±sÄ± kapatÄ±ldÄ±.");
+                //System.out.println("Veritabanı bağlantısı kapatıldı.");
             } catch (SQLException e) {
-                throw new RuntimeException("âŒ BaÄŸlantÄ± kapatÄ±lÄ±rken hata oluÅŸtu!", e);
+		e.printStackTrace();
+	    	throw new RuntimeException(e.getMessage());    
+                //throw new RuntimeException("Bağlantı kapatılırken hata oluştu!", e);
             }
         }
     }
