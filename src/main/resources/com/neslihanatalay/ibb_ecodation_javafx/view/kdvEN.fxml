@@ -10,6 +10,8 @@
     <!-- ÜST: Arama ve Filtre -->
     <top>
         <HBox spacing="10" padding="10">
+            <ComboBox fx:id="languageSelectComboBox" promptText="Select Language"
+                style="-fx-font-weight: bold; -fx-padding: 8; -fx-background-radius: 8; -fx-border-color: #ccc; -fx-border-radius: 8;" />
             <Label text="Search (Receipt Number):" />
             <TextField fx:id="searchField" promptText="Enter Receipt Number" />
             <Button text="Clear Filter" onAction="#clearFilters" />
