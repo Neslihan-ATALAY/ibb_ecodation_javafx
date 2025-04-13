@@ -9,7 +9,7 @@
     <!-- ÜST: Arama ve Filtre -->
     <top>
         <HBox spacing="10" padding="10">
-            <ComboBox fx:id="languageSelectComboBox" promptText="Select Language"
+            <ComboBox fx:id="languageSelectComboBox" promptText="Dil Seçiniz"
                 style="-fx-font-weight: bold; -fx-padding: 8; -fx-background-radius: 8; -fx-border-color: #ccc; -fx-border-radius: 8;" />
             <Label text="Ara (Fiş No):" />
             <TextField fx:id="searchField" promptText="Fiş no giriniz..." />
