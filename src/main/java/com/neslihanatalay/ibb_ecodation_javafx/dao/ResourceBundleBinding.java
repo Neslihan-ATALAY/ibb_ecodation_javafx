@@ -311,13 +311,13 @@ public class ResourceBundleBinding extends Application {
 				{ "hatayöneticisayfası", "Admin page screen has not been loaded!"}
 				{ "hatakayıtsayfası", "Register page screen has not been loaded!" }
 				{ "kullanıcıkayıt", "User Submit" }				
-				{ "yenikdv", "KDV record has been submitted successfully." }
-				{ "kdvgüncelleme", "KDV record has been updated successfully."}
-				{ "kdvsilme", "KDV record has been removed successfully."}
+				{ "yenikdv", "VAT record has been submitted successfully." }
+				{ "kdvgüncelleme", "VAT record has been updated successfully."}
+				{ "kdvsilme", "VAT record has been removed successfully."}
 				{ "kayıt", "Record: " }
 				{ "silme", "Removing" }
-				{ "yenikdvekle", "New KDV" }
-				{ "kdvgüncelle", "Update KDV " }
+				{ "yenikdvekle", "New VAT" }
+				{ "kdvgüncelle", "Update VAT" }
 				{ "tutar", "Total" }
 				{ "kdvoran", "KDV Percent (%)" }
 				{ "özeloran", "Private Percent" }
@@ -325,7 +325,7 @@ public class ResourceBundleBinding extends Application {
 				{ "tarih", "Date" }
 				{ "açıklama", "Description" }
 				{ "format", "Format" }
-				{ "kdvpanel", "KDV Panel" }
+				{ "kdvpanel", "VAT Panel" }
 				{ "hatakdvsayfası", "KDV page screen has NOT been loaded!" }
 				{ "tabloyenileme", "Table has been refreshed successfully." }
 				{ "çıkış", "Logout" }
@@ -337,12 +337,12 @@ public class ResourceBundleBinding extends Application {
 				{ "yazdırmabaşarısız", "Table has NOT been written successfully." }
 				{ "hataişletimsistemi", "This operating system is NOT supported!" }
 				{ "hatahesapmakinesi", "Calculator has NOT been opened!" }
-				{ "kdvhesapla", "KDV Calculate" }
-				{ "kdvhesaplayıcı", "KDV Calculator" }
+				{ "kdvhesapla", "VAT Calculate" }
+				{ "kdvhesaplayıcı", "VAT Calculator" }
 				{ "Özel", "private" }
 				{ "hesapla", "Calculate" }
-				{ "kdv", "KDV" }
-				{ "aratoplam", "ARA Total" }
+				{ "kdv", "VAT" }
+				{ "aratoplam", "Subtotal" }
 				{ "geneltoplam", "General Total" }
 				{ "geçersizgiriş", "Invalid Login" }
 				{ "dışaaktarma", "Export" }
@@ -351,18 +351,18 @@ public class ResourceBundleBinding extends Application {
 				{ "epostagönderme", "Email Sending" }
 				{ "epostagönderme", "Enter email address that KDV result will be send, please." }
 				{ "eposta", "E-mail" }
-				{ "kdvsonuç", "KDV Calculate Result" }
+				{ "kdvsonuç", "VAT Calculate Result" }
 				{ "mailbaşarılı", "Mail has been sended successfully." }
 				{ "mailbaşarısız", "Mail has NOT been sended successfully!" }
 				{ "txtdosyasıbaşarılı", "TXT file has been saved to desktop successfully." }
 				{ "txtdosyasıbaşarısız", "TXT file has NOT been saved to desktop successfully.!" }
 				{ "pdfdosyasıbaşarılı", "PDF file has been saved to desktop successfully.." }
 				{ "pdfdosyasıbaşarısız", "PDF file has NOT been saved to desktop successfully.!" }
-				{ "kdvtutar", "KDV Total" }
+				{ "kdvtutar", "VAT Total" }
 				{ "exceldosyasıbaşarılı", "EXCEL file has been saved to desktop successfully.." }
 				{ "exceldosyasıbaşarısız", "TXT file has NOT been saved to desktop successfully.!" }
-				{ "kdvtablosuyazdırmabaşarılı", "KDV table writing successfully." }
-				{ "kdvtablosuyazdırmabaşarısız", "KDV table writing unsuccessfully!" }
+				{ "kdvtablosuyazdırmabaşarılı", "VAT table writing successfully." }
+				{ "kdvtablosuyazdırmabaşarısız", "VAT table writing unsuccessfully!" }
 				{ "toplam", "Sum" }
 				{ "yeni", "New is creating..." }
 				{ "dosyaaçma", "File is opening..." }
