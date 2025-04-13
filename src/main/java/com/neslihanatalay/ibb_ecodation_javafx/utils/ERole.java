@@ -5,9 +5,9 @@ import com.neslihanatalay.ibb_ecodation_javafx.dao.ResourceBundleBinding;
 private final ResourceBundleBinding resourceBundleBinding = new ResourceBundleBinding(); 
 
 public enum ERole {
-    USER(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("kullanıcı"),
-    MODERATOR(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("moderator"),
-    ADMIN(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("yönetici");
+    USER(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("kullanıcırol"),
+    MODERATOR(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("moderatörrol"),
+    ADMIN(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("yöneticirol");
 
     private final String description;
 
