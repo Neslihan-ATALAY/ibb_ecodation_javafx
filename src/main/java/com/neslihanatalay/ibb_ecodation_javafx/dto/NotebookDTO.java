@@ -25,10 +25,10 @@ public class NotebookDTO {
         this.title = title;
         this.content = content;
         this.createdDate = createdDate;
-		this.updatedDate = updatedDate;
+	this.updatedDate = updatedDate;
         this.category = category;
-		this.pinned = pinned;
-		this.userId = userId;
+	this.pinned = pinned;
+	this.userId = userId;
     }
 	
 	public Long getId() {
