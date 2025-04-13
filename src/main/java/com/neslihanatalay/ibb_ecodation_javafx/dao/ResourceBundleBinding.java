@@ -225,9 +225,9 @@ public class ResourceBundleBinding extends Application {
 				{ "kullanıcıyönetimigiriş", "Kullanıcı Yönetimi Giriş Sayfası" }
 				{ "fxmlyüklenemedi", "FXML Yüklenemedi!" }
 				{ "dosya", "Dosya yolu: " }
-				{ "kullanıcı", "Kullanıcı" }
-				{ "moderatör", "Moderatör" }
-				{ "yönetici", "Yönetici" }
+				{ "kullanıcırol", "Kullanıcı" }
+				{ "moderatörrol", "Moderatör" }
+				{ "yöneticirol", "Yönetici" }
 				{ "geçersizrol", "❌ Geçersiz rol: " }
 				{ "kişisel", "Kişisel" }
 				{ "iş", "İş" }
@@ -392,9 +392,9 @@ public class ResourceBundleBinding extends Application {
 				{ "kullanıcıyönetimigiriş", "User Login Page" }
 				{ "fxmlyüklenemedi", "FXML has NOT been loaded!" }
 				{ "dosya", "File Path: " }
-				{ "kullanıcı", "User" }
-				{ "moderatör", "Moderator" }
-				{ "yönetici", "Admin" }
+				{ "kullanıcırol", "User" }
+				{ "moderatörrol", "Moderator" }
+				{ "yöneticirol", "Admin" }
 				{ "geçersizrol", "❌ Invalid role: " }
 				{ "kişisel", "Personal" }
 				{ "iş", "Work" }
