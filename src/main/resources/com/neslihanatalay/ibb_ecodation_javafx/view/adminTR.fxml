@@ -19,7 +19,8 @@
                 <Button text="🪪 Not Defteri" onAction="#notebook" style="-fx-background-color: #139c12; -fx-text-fill: white; -fx-background-radius: 8;" />
                 <Pane HBox.hgrow="ALWAYS" />
                 <Button text="👤 Profil" onAction="#showProfile" style="-fx-background-color: #8e44ad; -fx-text-fill: white; -fx-background-radius: 8;" />
-
+                <ComboBox fx:id="languageSelectComboBox" promptText="Select Language"
+                    style="-fx-font-weight: bold; -fx-padding: 8; -fx-background-radius: 8; -fx-border-color: #ccc; -fx-border-radius: 8;" />
                 <Button text="🚦Çıkış" onAction="#logout" style="-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-background-radius: 8;" />
                 <Label fx:id="welcomeLabel"/>
 		<Label fx:id="clockLabel" style="-fx-text-fill: white;" />
@@ -122,7 +123,7 @@
                 </HBox>
 
                 <HBox spacing="10" alignment="CENTER">
-                     <Button fx:id="btnKdvPrint" text="Yazdır" onAction="#printKdvTable"
+                    <Button fx:id="btnKdvPrint" text="Yazdır" onAction="#printKdvTable"
                             style="-fx-background-color: #34495e; -fx-text-fill: white; -fx-background-radius: 8;" />
                     <Button fx:id="btnKdvMail" text="Mail Gönder" onAction="#sendKdvByMail"
                             style="-fx-background-color: #d35400; -fx-text-fill: white; -fx-background-radius: 8;" />
