@@ -1,8 +1,9 @@
 package com.neslihanatalay.ibb_ecodation_javafx.controller;
 
 import com.neslihanatalay.ibb_ecodation_javafx.dao.NotebookDAO;
-import com.neslihanatalay.ibb_ecodation_javafx.dto.NotebookDTO;
+import com.neslihanatalay.ibb_ecodation_javafx.dao.ResourceBundleBinding;
 import com.neslihanatalay.ibb_ecodation_javafx.dao.UserDAO;
+import com.neslihanatalay.ibb_ecodation_javafx.dto.NotebookDTO;
 import com.neslihanatalay.ibb_ecodation_javafx.dto.UserDTO;
 import com.neslihanatalay.ibb_ecodation_javafx.utils.ECategory;
 import com.neslihanatalay.ibb_ecodation_javafx.utils.FXMLPath;
@@ -10,6 +11,8 @@ import com.neslihanatalay.ibb_ecodation_javafx.utils.SceneHelper;
 import com.neslihanatalay.ibb_ecodation_javafx.utils.SpecialColor;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.apache.commons.*
+import org.apache.commons.httpclient.*;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -21,13 +24,18 @@ import javafx.scene.input.KeyEvent;
 import javafx.stage.Stage;
 
 import java.util.Optional;
-import org.apache.commons.*
-import org.apache.commons.httpclient.*;
 
 public class NotebookController {
 
-    private final NotebookDAO notebookDAO = new NotebookDAO();
-    private final UserDAO userDAO = new UserDAO();
+    private final NotebookDAO notebookDAO;
+    private final UserDAO userDAO;
+    private final ResourceBundleBinding resourceBundleBinding;
+	
+    public NotebookController() {
+	notebookDAO = new NotebookDAO();
+	userDAO = new UserDAO();
+	resourceBundleBinding = new ResourceBundleBinding();
+    }
 
     @FXML private TableView<NotebookDTO> notebookTable;
     @FXML private TableColumn<NotebookDTO, Integer> idColumn;
@@ -39,6 +47,7 @@ public class NotebookController {
     @FXML private TableColumn<NotebookDTO, Boolean> pinnedColumn;
     @FXML private TableColumn<NotebookDTO, String> usernameColumn;
     @FXML private TextField searchField;
+    @FXML private ComboBox<Locale> languageSelectComboBox;
 	
     @FXML private Label welcomeLabel;
     @FXML private Label LoginUserIdLabelField;
@@ -46,6 +55,14 @@ public class NotebookController {
 	
     public static Integer getLoginUserId() { return loginUserId; }
     public static void setLoginUserId(Integer loginUserId) { this.loginUserId = loginUserId; }
+	
+    private static final String RESOURCE_NAME = Resources.class.getTypeName();
+	
+    private static final ObservableResourceFactory RESOURCE_FACTORY = new ObservableResourceFactory();
+	
+    static {
+    	RESOURCE_FACTORY.setResources(ResourceBundle.getBundle(RESOURCE_NAME));
+    }
 
     @FXML
     private void showAlert(String title, String message, Alert.AlertType type) {
@@ -64,6 +81,20 @@ public class NotebookController {
 
     @FXML
     public void initialize() {
+	languageSelectComboBox = new ComboBox<>();
+	languageSelectComboBox.getItems().add(null);
+        languageSelectComboBox.getItems().addAll(Locale.ENGLISH, Locale.TURKISH);
+        languageSelectComboBox.setValue(Locale.TURKISH);
+	languageSelectComboBox.setCellFactory(lv -> new LocaleCell());
+	languageSelectComboBox.setButtonCell(new LocaleCell());
+		
+	//languageSelectComboBox.getSelectionModel().selectedIndexProperty().addListener((obs, oldValue, newValue) -> {		
+	languageSelectComboBox.valueProperty().addListener((obs, oldValue, newValue) -> {
+	    if (newValue != null) {
+	        RESOURCE_FACTORY.setResources(ResourceBundle.getBundle(RESOURCE_NAME, newValue));
+	    }
+	});
+		
         idColumn.setCellValueFactory(new PropertyValueFactory<>("id"));
         titleColumn.setCellValueFactory(new PropertyValueFactory<>("title"));
         contentColumn.setCellValueFactory(new PropertyValueFactory<>("content"));
@@ -76,12 +107,25 @@ public class NotebookController {
         refreshTable();
 		
 	// GİRİŞ YAPAN KULLANICININ ID NUMARASI LoginUserIdLabelField'e KAYDEDİLİR
-	//LoginUserIdLabelField.setText(Integer.valueOf(request.getParameter("user")));
-	setLoginUserId(Integer.valueOf(Request["user"].toString()));
-	LoginUserIdLabelField.setText(Request["user"].toString());
+	setLoginUserId(Integer.valueOf(request().getQueryString("kullanıcı").toString()));
+	LoginUserIdLabelField.setText(request().getQueryString("kullanıcı").toString());
 	UserDTO userDTO = userDAO.findById(getLoginUserId());
 	if (userDTO.isPresent()) {
-	    welcomeLabel.setText("Merhaba " + userDTO.getUsername() + ", Hoşgeldiniz");
+	    welcomeLabel.setText(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("selamlama") 
+		+ " " + userDTO.getUsername() + ", " + resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("hoşgeldiniz"));
+	    //welcomeLabel.setText("Merhaba " + userDTO.getUsername() + ", Hoşgeldiniz");
+	}
+    }
+	
+    public static class LocaleCell extends ListCell<Locale> {
+	@Override
+	public void updateItem(Locale locale, boolean empty) {
+    	    super.updateItem(locale, empty);
+	    if (empty) {
+		setText(null);
+	    } else {
+		setText(locale.getDisplayLanguage(locale));
+	    }
 	}
     }
 	
@@ -118,8 +162,9 @@ public class NotebookController {
         if (newNotebook != null && newNotebook.isValid()) {
             notebookDAO.create(newNotebook);
             refreshTable();
-            showAlert("Başarılı", "Not eklendi.", Alert.AlertType.INFORMATION);
-        }
+            showAlert(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("bilgi"), resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("noteklendi"), Alert.AlertType.INFORMATION);
+            //showAlert("Bilgi", "Not eklendi.", Alert.AlertType.INFORMATION);
+	}
     }
 	
     //NOT GÜNCELLEME
@@ -127,14 +172,16 @@ public class NotebookController {
     private void updateNotebook(ActionEvent event) {
         NotebookDTO selected = notebookTable.getSelectionModel().getSelectedItem();
         if (selected == null) {
-            showAlert("Uyarı", "Güncellenecek bir kayıt seçin.", Alert.AlertType.WARNING);
+            //showAlert("Uyarı", "Güncellenecek bir kayıt seçin.", Alert.AlertType.WARNING);
+	    showAlert(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("uyarı"), resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("seçgüncellenecek"), Alert.AlertType.WARNING);
             return;
         }
         NotebookDTO updated = showNotebookForm(selected);
         if (updated != null && updated.isValid()) {
             notebookDAO.update(selected.getId(), updated);
             refreshTable();
-            showAlert("Başarılı", "Not kaydı güncellendi.", Alert.AlertType.INFORMATION);
+	    showAlert(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("bilgi"), resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("notgüncellendi"), Alert.AlertType.INFORMATION);
+            //showAlert("Bilgi", "Not kaydı güncellendi.", Alert.AlertType.INFORMATION);
         }
     }
 
@@ -143,16 +190,19 @@ public class NotebookController {
     private void deleteNotebook(ActionEvent event) {
         NotebookDTO selected = notebookTable.getSelectionModel().getSelectedItem();
         if (selected == null) {
-            showAlert("Uyarı", "Silinecek bir kayıt seçin.", Alert.AlertType.WARNING);
+            //showAlert("Uyarı", "Silinecek bir kayıt seçin.", Alert.AlertType.WARNING);
+	    showAlert(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("uyarı"), resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("seçsilinecek"), Alert.AlertType.WARNING);
             return;
         }
-        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION, "Silmek istiyor musunuz?", ButtonType.OK, ButtonType.CANCEL);
+        //Alert confirm = new Alert(Alert.AlertType.CONFIRMATION, "Silmek istiyor musunuz?", ButtonType.OK, ButtonType.CANCEL);
+	Alert confirm = new Alert(Alert.AlertType.CONFIRMATION, resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("onaylasilme"), ButtonType.OK, ButtonType.CANCEL);
         confirm.setHeaderText("Kayıt: " + selected.getTitle());
         Optional<ButtonType> result = confirm.showAndWait();
         if (result.isPresent() && result.get() == ButtonType.OK) {
             notebookDAO.delete(selected.getId());
             refreshTable();
-            showAlert("Silindi", "Not kaydı silindi.", Alert.AlertType.INFORMATION);
+	    showAlert(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("silme"), resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("notsilindi"), Alert.AlertType.INFORMATION);
+            //showAlert("Silindi", "Not kaydı silindi.", Alert.AlertType.INFORMATION);
         }
     }
 
@@ -160,8 +210,9 @@ public class NotebookController {
     //@FXML
     private NotebookDTO showNotebookForm(NotebookDTO existing) {
         Dialog<NotebookDTO> dialog = new Dialog<>();
-        dialog.setTitle(existing == null ? "Yeni Not Ekle" : "Not Güncelle");
-
+        //dialog.setTitle(existing == null ? "Yeni Not Ekle" : "Not Güncelle");
+	dialog.setTitle(existing == null ? resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("yeninotekle") : resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("notgüncelle");
+		
         TextField titleField = new TextField();
         TextField contentField = new TextField();
         DatePicker createdDateField = new DatePicker(LocalDate.now());
@@ -189,13 +240,20 @@ public class NotebookController {
 
         GridPane grid = new GridPane();
         grid.setHgap(10); grid.setVgap(10);
-        grid.addRow(0, new Label("Başlık:"), titleField);
-        grid.addRow(1, new Label("İçerik:"), contentField);
-        grid.addRow(2, new Label("Not Tarihi:"), createdDateField);
-        grid.addRow(3, new Label("Not Güncelleme Tarihi:"), updatedDateField);
-        grid.addRow(4, new Label("Kategori:"), categoryField);
-        grid.addRow(5, new Label("Not Sabitlendi:"), pinnedField);
-	grid.addRow(6, new Label("Kullanıcı Adı:"), usernameField);
+        //grid.addRow(0, new Label("Başlık"), titleField);
+	grid.addRow(0, new Label(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("başlık")), titleField);
+        //grid.addRow(1, new Label("İçerik:"), contentField);
+	grid.addRow(1, new Label(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("içerik")), contentField);
+        //grid.addRow(2, new Label("Not Tarihi"), createdDateField);
+	grid.addRow(2, new Label(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("nottarihi")), createdDateField);
+        //grid.addRow(3, new Label("Not Güncelleme Tarihi"), updatedDateField);
+	grid.addRow(3, new Label(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("notgüncellemetarihi")), updatedDateField);
+        //grid.addRow(4, new Label("Kategori"), categoryField);
+	grid.addRow(4, new Label(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("kategori")), categoryField);
+        //grid.addRow(5, new Label("Not Sabitle"), pinnedField);
+	grid.addRow(5, new Label(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("notsabitle")), pinnedField);
+	//grid.addRow(6, new Label("Kullanıcı Adı"), usernameField);
+	grid.addRow(6, new Label(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("kullanıcıadı")), usernameField);
 		
         dialog.getDialogPane().setContent(grid);
         dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
@@ -213,7 +271,8 @@ public class NotebookController {
 			    .userId((existing != null) ? (existing.getUserId()) : (getLoginUserId())
                             .build();
                 } catch (Exception e) {
-                    showAlert("Hata", "Geçersiz veri!", Alert.AlertType.ERROR);
+                    //showAlert("Hata", "Geçersiz veri!", Alert.AlertType.ERROR);
+		    showAlert(resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("hata"), resourceBundleBinding.RESOURCE_FACTORY.getStringBinding("geçersizveri"), Alert.AlertType.ERROR);
                 }
             }
             return null;
