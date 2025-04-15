@@ -330,7 +330,7 @@ public class ResourceBundleBinding extends Application {
 				{ "tabloyenileme", "Table has been refreshed successfully." }
 				{ "çıkış", "Logout" }
 				{ "çıkma", "Are you exit from session?" }
-				{ "eminmisiniz?", "Emin misiniz?" }
+				{ "eminmisiniz?", "Are you sure?" }
 				{ "hatagirişsayfası", "Login page screen has NOT been loaded!" }
 				{ "hatayazıcı", "Printer is NOT defined in system, printer has NOT been found!" }
 				{ "yazdırmabaşarılı", "Table has been written successfully." }
